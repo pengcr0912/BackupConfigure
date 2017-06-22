@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     myDiagramScene = new DiagramScene;
-    myDiagramScene->setSceneRect(QRect(0, 0, 100, 500));
+    myDiagramScene->setSceneRect(QRect(0, 0, 2000, 1500));
 
     connect(myDiagramScene,SIGNAL(itemSelected(QGraphicsItem*)),
             this,SLOT(itemSelected(QGraphicsItem*)));

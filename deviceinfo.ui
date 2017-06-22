@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>573</width>
+    <width>747</width>
     <height>515</height>
    </rect>
   </property>
@@ -19,59 +19,70 @@
      <rect>
       <x>0</x>
       <y>10</y>
-      <width>201</width>
+      <width>301</width>
       <height>471</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
-    <widget class="QWidget" name="paramset">
+    <widget class="QWidget" name="logShow">
      <property name="geometry">
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>201</width>
-       <height>403</height>
+       <width>301</width>
+       <height>366</height>
       </rect>
      </property>
      <attribute name="label">
       <string>Page 1</string>
      </attribute>
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QListWidget" name="listWidget">
       <property name="geometry">
        <rect>
-        <x>40</x>
+        <x>10</x>
         <y>0</y>
-        <width>113</width>
-        <height>32</height>
+        <width>291</width>
+        <height>361</height>
        </rect>
       </property>
-      <property name="text">
-       <string>图标颜色设置</string>
+      <property name="mouseTracking">
+       <bool>true</bool>
+      </property>
+      <property name="tabletTracking">
+       <bool>true</bool>
+      </property>
+      <property name="autoFillBackground">
+       <bool>true</bool>
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="commandset">
+    <widget class="QWidget" name="commandSet">
      <property name="geometry">
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>201</width>
-       <height>403</height>
+       <width>301</width>
+       <height>366</height>
       </rect>
      </property>
      <attribute name="label">
       <string>Page 2</string>
      </attribute>
     </widget>
+    <widget class="QWidget" name="paramset">
+     <attribute name="label">
+      <string>页</string>
+     </attribute>
+    </widget>
    </widget>
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">
      <rect>
-      <x>220</x>
+      <x>310</x>
       <y>10</y>
-      <width>351</width>
+      <width>431</width>
       <height>471</height>
      </rect>
     </property>
@@ -82,7 +93,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>573</width>
+     <width>747</width>
      <height>22</height>
     </rect>
    </property>
