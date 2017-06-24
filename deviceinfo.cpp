@@ -21,10 +21,12 @@ deviceinfo::deviceinfo(BaseItem *baseItem, QWidget *parent) :
     setWindowFlags(flags); // 设置禁止最大化
 
     ui->tableWidget->setColumnCount(4);
-    ui->tableWidget->setRowCount(15);
+    ui->tableWidget->setRowCount(30);
     QStringList headers;
     headers << "参数名称" << "允许最小值" << "允许最大值" << "当前值";
     ui->tableWidget->setHorizontalHeaderLabels(headers);
+    ui->tableWidget->horizontalHeader()->setStretchLastSection(true);//自动填满控件
+
     ui->tableWidget->setItem(0, 0, new QTableWidgetItem("CPU使用率"));
     ui->tableWidget->setItem(0, 1, new QTableWidgetItem("0"));
     ui->tableWidget->setItem(0, 2, new QTableWidgetItem("30%"));
@@ -67,6 +69,11 @@ deviceinfo::deviceinfo(BaseItem *baseItem, QWidget *parent) :
     const QColor color = QColor(255,0,0);
     tableItem->setBackgroundColor(color);
     }
+
+
+
+    for(int k=0;k<ui->tableWidget->rowCount();k++)
+    ui->tableWidget->setRowHeight(k,20);
 
     ui->toolBox->setItemText(0,"日志显示");
     ui->toolBox->setItemText(1,"参数配置");

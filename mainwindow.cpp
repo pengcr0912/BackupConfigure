@@ -932,7 +932,6 @@ void MainWindow::createToolBox()
     QWidget *textWidget = new QWidget;
     textWidget->setLayout(textLayout);
     layout->addWidget(textWidget, 1, 1);
-
     layout->setRowStretch(3, 10);
     layout->setColumnStretch(2, 10);
 */
@@ -961,7 +960,8 @@ void MainWindow::createToolBox()
 
 
     QWidget *sqlWidget = new QWidget;
-    QWidget *setWidget = new QWidget;
+    QWidget *paramWidget = new QWidget;
+
 
 //! [22]
     toolBox = new QToolBox;
@@ -970,5 +970,5 @@ void MainWindow::createToolBox()
     toolBox->addItem(itemWidget, tr("设备监控"));
     toolBox->addItem(backgroundWidget, tr("知识管理"));
     toolBox->addItem(sqlWidget, tr("数据查询"));
-    toolBox->addItem(sqlWidget, tr(""));
+    toolBox->addItem(paramWidget, tr("参数设置"));
 }

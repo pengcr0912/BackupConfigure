@@ -45,6 +45,7 @@ void DiagramScene::setItemColor(const QColor &color)
         }
     }
 }
+
 void DiagramScene::setLineColor(const QColor &color)
 {
     myLineColor = color;
@@ -54,6 +55,8 @@ void DiagramScene::setLineColor(const QColor &color)
         {
             if(BaseItem *baseItem = dynamic_cast<BaseItem *>(item))
                 baseItem->setPen(myLineColor);
+            else if(QGraphicsLineItem *lineItem = dynamic_cast<QGraphicsLineItem *>(item))
+                lineItem->setPen(myLineColor);
         }
     }
 
@@ -95,7 +98,12 @@ bool DiagramScene::writeFile(QFile &file)
         {
             out << *baseItem;
         }
-//        out << *item;
+        else if(LineItem *lineItem = dynamic_cast<LineItem *>(item))
+        {
+            out << lineItem->type()
+                << lineItem->boundingRect()
+                << lineItem->pen();
+        }
     }
 
     QApplication::restoreOverrideCursor();
@@ -115,39 +123,60 @@ bool DiagramScene::readFile(QFile &file)
         QColor myPenColor;
         qint8 myPenWidth;
         QColor myBrushColor;
-        in >> itemType >> myRect >> mypos >> myPenColor >> myPenWidth >> myBrushColor;
+        QPen myPen;
+        in >> itemType;
+        if(itemType == (QGraphicsItem::UserType + 3) || itemType == (QGraphicsItem::UserType + 4))
+        {
+            in >> myRect >> mypos >> myPenColor >> myPenWidth >> myBrushColor;
 
-        if(in.status() != QDataStream::Ok)
-        {
-            return false;
+            if(in.status() != QDataStream::Ok)
+            {
+                return false;
+            }
+            switch(itemType)
+            {
+            case QGraphicsItem::UserType + 3://rectItem
+            {
+                RectItem *rectItem = new RectItem;
+                addItem(rectItem);
+                rectItem->setRect(myRect);
+                rectItem->setPen(myPenColor);
+                rectItem->setPen(myPenWidth);
+                rectItem->setBrush(QBrush(myBrushColor));
+                rectItem->setPos(mypos);
+                break;
+            }
+            case QGraphicsItem::UserType + 4:
+            {
+                EllipseItem *ellipseItem = new EllipseItem;
+                addItem(ellipseItem);
+                ellipseItem->setRect(myRect);
+                ellipseItem->setPen(myPenColor);
+                ellipseItem->setPen(myPenWidth);
+                ellipseItem->setBrush(QBrush(myBrushColor));
+                ellipseItem->setPos(mypos);
+                break;
+            }
+            default:
+                ;
+            }
         }
-        switch(itemType)
+        else if(itemType == QGraphicsItem::UserType + 6)
         {
-        case QGraphicsItem::UserType + 3://rectItem
-        {
-            RectItem *rectItem = new RectItem;
-            addItem(rectItem);
-            rectItem->setRect(myRect);
-            rectItem->setPen(myPenColor);
-            rectItem->setPen(myPenWidth);
-            rectItem->setBrush(QBrush(myBrushColor));
-            rectItem->setPos(mypos);
-            break;
+            in >> myRect >> myPen;
+
+            if(in.status() != QDataStream::Ok)
+            {
+                return false;
+            }
+            LineItem *lineItem = new LineItem;
+            lineItem->setLine(myRect.x(),myRect.y(),myRect.x()+myRect.width(),myRect.y()+myRect.height());
+            lineItem->setPen(myPen);
+            addItem(lineItem);
         }
-        case QGraphicsItem::UserType + 4:
-        {
-            EllipseItem *ellipseItem = new EllipseItem;
-            addItem(ellipseItem);
-            ellipseItem->setRect(myRect);
-            ellipseItem->setPen(myPenColor);
-            ellipseItem->setPen(myPenWidth);
-            ellipseItem->setBrush(QBrush(myBrushColor));
-            ellipseItem->setPos(mypos);
-            break;
-        }
-        default:
-            ;
-        }
+
+
+
     }
     QApplication::restoreOverrideCursor();
     return true;
@@ -284,7 +313,7 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
     case InsertLineItem:
         if(line)
         {
-            line->setPen(QPen(Qt::blue, 3, Qt::SolidLine));
+            line->setPen(QPen(Qt::black, 1, Qt::SolidLine));
             setMode(MoveItem);
             line = 0;
         }

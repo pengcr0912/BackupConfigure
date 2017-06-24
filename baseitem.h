@@ -24,7 +24,7 @@ public:
     virtual void setBrush(const QBrush &brush);
 
     virtual QRectF  rect() const;
-    virtual void  setRect(const QRectF &rect) ;
+    virtual void  setRect(const QRectF &rect);
     inline void setRect(qreal x, qreal y, qreal w, qreal h);
 
     void mySetIsMemberOfGroup(bool enabled);

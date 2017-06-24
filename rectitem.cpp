@@ -43,7 +43,8 @@ QPainterPath RectItem::shape() const
 {
     QPainterPath path;
     path.addRect(myRect);
-    return qt_graphicsItem_shapeFromPath(path, this->pen());
+    return path;
+//    return qt_graphicsItem_shapeFromPath(path, this->pen());
 }
 void RectItem::paintShape(QPainter *painter, const QStyleOptionGraphicsItem *option,
                               QWidget *widget)

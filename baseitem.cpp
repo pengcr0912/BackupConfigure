@@ -8,7 +8,7 @@
 
 const int BaseItem::resizeHandleWidth ;
 const QSizeF BaseItem::minSize(0.0, 0.0);
-
+/*
 QPainterPath qt_graphicsItem_shapeFromPath(const QPainterPath &path, const QPen &pen)
 {
     // We unfortunately need this hack as QPainterPathStroker will set a width of 1.0
@@ -29,7 +29,7 @@ QPainterPath qt_graphicsItem_shapeFromPath(const QPainterPath &path, const QPen 
     p.addPath(path);
     return p;
 }
-
+*/
 BaseItem::BaseItem(QGraphicsItem* parent)
     :QGraphicsItem(parent)
 {

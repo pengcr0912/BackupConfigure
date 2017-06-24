@@ -3,7 +3,7 @@
 
 #include "baseitem.h"
 class BaseItem;
-extern QPainterPath qt_graphicsItem_shapeFromPath(const QPainterPath &path, const QPen &pen);
+//extern QPainterPath qt_graphicsItem_shapeFromPath(const QPainterPath &path, const QPen &pen);
 class RectItem : public BaseItem
 {
 public:
