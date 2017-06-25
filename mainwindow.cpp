@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
     view = new QGraphicsView(myDiagramScene, this);
     view->setAutoFillBackground(true);
     view->setDragMode(QGraphicsView::RubberBandDrag);
+
 //    QPalette pal = palette();
 //    pal.setBrush(QPalette::Base, QPixmap(":/images/background.png"));
 //    pal.setColor(QPalette::HighlightedText, Qt::red);

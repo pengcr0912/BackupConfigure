@@ -55,7 +55,7 @@ void DiagramScene::setLineColor(const QColor &color)
         {
             if(BaseItem *baseItem = dynamic_cast<BaseItem *>(item))
                 baseItem->setPen(myLineColor);
-            else if(QGraphicsLineItem *lineItem = dynamic_cast<QGraphicsLineItem *>(item))
+            else if(LineItem *lineItem = dynamic_cast<LineItem *>(item))
                 lineItem->setPen(myLineColor);
         }
     }
@@ -65,12 +65,18 @@ void DiagramScene::setLineColor(const QColor &color)
 void DiagramScene::setLineWidth(const int width)
 {
     myLineWidth = width;
+    QPen linePen;
     if(!selectedItems().isEmpty())
     {
         foreach(QGraphicsItem *item, selectedItems())
         {
             if(BaseItem *baseItem = dynamic_cast<BaseItem *>(item))
                 baseItem->setPen(myLineWidth);
+            else if(LineItem *lineItem = dynamic_cast<LineItem *>(item))
+            {
+                linePen.setWidth(myLineWidth);
+                lineItem->setPen(linePen);
+            }
         }
     }
 }
@@ -101,8 +107,19 @@ bool DiagramScene::writeFile(QFile &file)
         else if(LineItem *lineItem = dynamic_cast<LineItem *>(item))
         {
             out << lineItem->type()
-                << lineItem->boundingRect()
+                //<< lineItem->boundingRect()
+                << lineItem->pos()
+                << lineItem->line()
                 << lineItem->pen();
+//                << lineItem->pen().color()
+//                << lineItem->pen().width();
+        }
+        else if(TextItem *textItem = dynamic_cast<TextItem *>(item))
+        {
+            out << textItem->type()
+                << textItem->pos()
+                << textItem->toPlainText()
+                << textItem->font();
         }
     }
 
@@ -123,7 +140,15 @@ bool DiagramScene::readFile(QFile &file)
         QColor myPenColor;
         qint8 myPenWidth;
         QColor myBrushColor;
-        QPen myPen;
+
+        QLineF myLine;
+        QColor linePenColor;
+        qint8 linePenWidth;
+        QPen linePen;
+
+        QFont myFont;
+        QString myString;
+
         in >> itemType;
         if(itemType == (QGraphicsItem::UserType + 3) || itemType == (QGraphicsItem::UserType + 4))
         {
@@ -161,17 +186,37 @@ bool DiagramScene::readFile(QFile &file)
                 ;
             }
         }
+        else if(itemType == QGraphicsItem::UserType + 5)
+        {
+            in >> mypos >> myString >> myFont;
+
+            if(in.status() != QDataStream::Ok)
+            {
+                return false;
+            }
+            TextItem *textItem = new TextItem;
+            textItem->setPos(mypos);
+            textItem->setPlainText(myString);
+            textItem->setFont(myFont);
+            addItem(textItem);
+        }
         else if(itemType == QGraphicsItem::UserType + 6)
         {
-            in >> myRect >> myPen;
+//            in >> myRect >> myPen;
+            in >> mypos >> myLine >> linePen;
+            //>> linePenColor >> linePenWidth;
 
             if(in.status() != QDataStream::Ok)
             {
                 return false;
             }
             LineItem *lineItem = new LineItem;
-            lineItem->setLine(myRect.x(),myRect.y(),myRect.x()+myRect.width(),myRect.y()+myRect.height());
-            lineItem->setPen(myPen);
+//            linePen.setColor(linePenColor);
+//            linePen.setWidth(linePenWidth);
+//            lineItem->setLine(myRect.x(),myRect.y(),myRect.x()+myRect.width(),myRect.y()+myRect.height());
+            lineItem->setPos(mypos);
+            lineItem->setLine(myLine);
+            lineItem->setPen(linePen);
             addItem(lineItem);
         }
 
@@ -250,6 +295,22 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
              addItem(textItem);
              textItem->setDefaultTextColor(myTextColor);
              textItem->setPos(mouseEvent->scenePos());
+
+
+
+
+
+
+             QPixmap *pixmap = new  QPixmap("/users/hyn/images/image.png");
+             pixItem = new PixItem(pixmap);
+             addItem(pixItem);
+             pixItem->setPos(100,100);
+
+
+
+
+
+
          }
          setMode(MoveItem);
          //        emit textInserted(textItem);//主要是想改变场景的模式
@@ -313,7 +374,7 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
     case InsertLineItem:
         if(line)
         {
-            line->setPen(QPen(Qt::black, 1, Qt::SolidLine));
+            line->setPen(QPen(Qt::black, 2, Qt::SolidLine));
             setMode(MoveItem);
             line = 0;
         }
@@ -496,10 +557,11 @@ GroupItem *DiagramScene::myCreatItemGroup(const QList<QGraphicsItem *> &items)
 }
 void DiagramScene::myDestroyItemGroup(GroupItem *group)
 {
-/*    foreach (QGraphicsItem *item, group->children())
+    //foreach (QGraphicsItem *item, group->children())
+    foreach (QGraphicsItem *item, selectedItems())
     {
         group->removeFromGroup(item);
     }
     removeItem(group);
-    delete group;*/
+    delete group;
 }

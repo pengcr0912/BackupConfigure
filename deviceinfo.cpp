@@ -13,7 +13,7 @@ deviceinfo::deviceinfo(BaseItem *baseItem, QWidget *parent) :
 
 //    myItem->setPen(Qt::green);
 //    myItem->setBrush(Qt::green);
-    myItem->setBrush(QColor(100,200,100));
+    myItem->setBrush(Qt::blue);
     myItem->update();
 
     Qt::WindowFlags flags = 0;

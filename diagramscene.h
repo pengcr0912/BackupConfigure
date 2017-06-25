@@ -7,7 +7,7 @@
 #include "textitem.h"
 #include "mainwindow.h"
 #include "ellipseitem.h"
-
+#include "pixitem.h"
 
 #include <QGraphicsScene>
 
@@ -67,6 +67,9 @@ private:
     RectItem *Rect;
     LineItem *line;
     TextItem *textItem;
+
+    PixItem *pixItem;
+
     QPointF startPoint;
     Mode myMode;
     QColor myTextColor;
