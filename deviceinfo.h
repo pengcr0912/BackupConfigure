@@ -4,6 +4,7 @@
 #include "ui_deviceinfo.h"
 #include <QMainWindow>
 class BaseItem;
+class PixItem;
 class QColor;
 
 namespace Ui {
@@ -16,6 +17,7 @@ class deviceinfo : public QMainWindow
 
 public:
     explicit deviceinfo(BaseItem *baseItem, QWidget *parent = 0);
+    explicit deviceinfo(PixItem *pixItem, QWidget *parent = 0);
     ~deviceinfo();
 
 private:
@@ -25,6 +27,8 @@ private:
     QListWidgetItem* listItem;
 
     BaseItem *myItem;
+
+    PixItem *mypixItem;
 
 private slots:
     void plotSlot(int i,int j);

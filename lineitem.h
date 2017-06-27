@@ -12,5 +12,4 @@ public:
     enum { Type = QGraphicsItem::UserType + 6 };
     int type() const;
 };
-
 #endif // LINEITEM_H

@@ -45,6 +45,7 @@ private slots:
     void addRect();
     void addLine();
     void addText();
+    void addPix();
     void deleteItem();
     void updateActions();
     QString strippedName(const QString &fullFileName);
@@ -142,6 +143,7 @@ private:
     QAction *addTriangleAction;
     QAction *addLineAction;
     QAction *addTextAction;
+    QAction *addPixAction;
     QAction *deleteAction;
     QAction *fillAction;
     QAction *lineColorAction;

@@ -121,6 +121,12 @@ bool DiagramScene::writeFile(QFile &file)
                 << textItem->toPlainText()
                 << textItem->font();
         }
+        else if(PixItem *pixItem = dynamic_cast<PixItem *>(item))
+        {
+            out << pixItem->type()
+                << pixItem->pos()
+                << pixItem->pix;
+        }
     }
 
     QApplication::restoreOverrideCursor();
@@ -148,6 +154,8 @@ bool DiagramScene::readFile(QFile &file)
 
         QFont myFont;
         QString myString;
+
+        QPixmap myPixmap;
 
         in >> itemType;
         if(itemType == (QGraphicsItem::UserType + 3) || itemType == (QGraphicsItem::UserType + 4))
@@ -218,6 +226,20 @@ bool DiagramScene::readFile(QFile &file)
             lineItem->setLine(myLine);
             lineItem->setPen(linePen);
             addItem(lineItem);
+        }
+        else if(itemType == QGraphicsItem::UserType + 7)//
+        {
+            in >> mypos >> myPixmap;
+
+            if(in.status() != QDataStream::Ok)
+            {
+                return false;
+            }
+            PixItem *pixItem = new PixItem(&myPixmap);
+            pixItem->setPos(mypos);
+//            pixItem->setPixmap(myPixmap);
+            addItem(pixItem);
+
         }
 
 
@@ -295,25 +317,19 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
              addItem(textItem);
              textItem->setDefaultTextColor(myTextColor);
              textItem->setPos(mouseEvent->scenePos());
-
-
-
-
-
-
-             QPixmap *pixmap = new  QPixmap("/users/hyn/images/image.png");
-             pixItem = new PixItem(pixmap);
-             addItem(pixItem);
-             pixItem->setPos(100,100);
-
-
-
-
-
-
          }
          setMode(MoveItem);
+         break;
+    case InsertPixItem:
+         pixmap = new  QPixmap("/users/hyn/images/image.png");
+         pixItem = new PixItem(pixmap);
+         if(pixItem)
+         {
+             addItem(pixItem);
+             pixItem->setPos(mouseEvent->scenePos());
+         }
          //        emit textInserted(textItem);//主要是想改变场景的模式
+         setMode(MoveItem);
          break;
 
     default:

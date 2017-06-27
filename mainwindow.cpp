@@ -163,6 +163,11 @@ void MainWindow::createActions()
    connect(addTextAction,SIGNAL(triggered()),
            this,SLOT(addText()));
 
+   addPixAction = new QAction(tr("actionAddPix"),this);
+   addPixAction->setIcon(QIcon("/users/hyn/images/image.png"));
+   connect(addPixAction,SIGNAL(triggered()),
+           this,SLOT(addPix()));
+
    toFrontAction = new QAction(tr("Bring to &Front"), this);
    toFrontAction->setShortcut(tr("Ctrl+F"));
    toFrontAction->setStatusTip(tr("Bring item to front"));
@@ -274,6 +279,7 @@ void MainWindow::createToolbars()
     ItemToolBar->addAction(addTriangleAction);
     ItemToolBar->addAction(addLineAction);
     ItemToolBar->addAction(addTextAction);
+    ItemToolBar->addAction(addPixAction);
 
     ItemToolBar->setOrientation(Qt::Vertical);
     addToolBar(Qt::RightToolBarArea, ItemToolBar);
@@ -774,6 +780,10 @@ void MainWindow::addLine()
 void MainWindow::addText()
 {
     myDiagramScene->setMode(DiagramScene::InsertTextItem);
+}
+void MainWindow::addPix()
+{
+    myDiagramScene->setMode(DiagramScene::InsertPixItem);
 }
 void MainWindow::deleteItem()
 {

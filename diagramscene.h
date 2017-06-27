@@ -27,7 +27,7 @@ class DiagramScene : public QGraphicsScene
     Q_OBJECT
 
 public:
-    enum Mode { InsertCircleItem , InsertRectItem , InsertLineItem , InsertTextItem, MoveItem};
+    enum Mode { InsertCircleItem , InsertRectItem , InsertLineItem , InsertTextItem, InsertPixItem, MoveItem};
     DiagramScene(QObject *parent = 0);
     void setMode(Mode mode );
     void setStartPoint(QPointF point);
@@ -69,6 +69,7 @@ private:
     TextItem *textItem;
 
     PixItem *pixItem;
+    QPixmap *pixmap;
 
     QPointF startPoint;
     Mode myMode;
