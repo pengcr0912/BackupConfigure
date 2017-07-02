@@ -164,7 +164,7 @@ void MainWindow::createActions()
            this,SLOT(addText()));
 
    addPixAction = new QAction(tr("actionAddPix"),this);
-   addPixAction->setIcon(QIcon("/users/hyn/images/image.png"));
+   addPixAction->setIcon(QIcon("/users/hyn/images/device.jpg"));
    connect(addPixAction,SIGNAL(triggered()),
            this,SLOT(addPix()));
 

@@ -29,6 +29,9 @@ class DiagramScene : public QGraphicsScene
 public:
     enum Mode { InsertCircleItem , InsertRectItem , InsertLineItem , InsertTextItem, InsertPixItem, MoveItem};
     DiagramScene(QObject *parent = 0);
+
+    QList<PixItem *> mypixlist;
+
     void setMode(Mode mode );
     void setStartPoint(QPointF point);
     void setItemColor(const QColor &color);
@@ -75,6 +78,10 @@ private:
     Mode myMode;
     QColor myTextColor;
     QFont myTextFont;
+
+    int pixid;
+    QString pixname;
+    QList<PixItem*> myPixList;
 //signals:
     //void itemMoved(DiagramItem *movedItem,const QPointF &movedFromPosition);
 

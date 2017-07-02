@@ -33,5 +33,10 @@ void PixItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 //    dialog.exec();
 
     deviceinfo* devicewindow = new deviceinfo(this);
+    devicewindow->setid(id);
+    devicewindow->setname(name);
+    devicewindow->setTable(deviceParamList);
     devicewindow->show();
+//    pixid=devicewindow->getid();
+//    pixname=devicewindow->getname();
 }

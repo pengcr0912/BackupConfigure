@@ -14,6 +14,7 @@ DiagramScene::DiagramScene(QObject *parent)
     circle = NULL;
     line = NULL;
     textItem = NULL;
+    pixid=0;
     myTextColor = Qt::black;
 
 }
@@ -125,7 +126,10 @@ bool DiagramScene::writeFile(QFile &file)
         {
             out << pixItem->type()
                 << pixItem->pos()
-                << pixItem->pix;
+                << pixItem->pix
+                << pixItem->id
+                << pixItem->name
+                << pixItem->deviceParamList;
         }
     }
 
@@ -156,6 +160,7 @@ bool DiagramScene::readFile(QFile &file)
         QString myString;
 
         QPixmap myPixmap;
+        QList<DeviceParam> myDeviceParamList;
 
         in >> itemType;
         if(itemType == (QGraphicsItem::UserType + 3) || itemType == (QGraphicsItem::UserType + 4))
@@ -229,7 +234,7 @@ bool DiagramScene::readFile(QFile &file)
         }
         else if(itemType == QGraphicsItem::UserType + 7)//
         {
-            in >> mypos >> myPixmap;
+            in >> mypos >> myPixmap >> pixid >> pixname >> myDeviceParamList;
 
             if(in.status() != QDataStream::Ok)
             {
@@ -238,13 +243,26 @@ bool DiagramScene::readFile(QFile &file)
             PixItem *pixItem = new PixItem(&myPixmap);
             pixItem->setPos(mypos);
 //            pixItem->setPixmap(myPixmap);
+            pixItem->id = pixid;
+            pixItem->name = pixname;
+            pixItem->deviceParamList = myDeviceParamList;
             addItem(pixItem);
-
         }
 
-
-
     }
+
+    QList<QGraphicsItem *>  myitemlist = items();
+    int itemcnt=myitemlist.count();
+    int pixcnt=0;
+    for(int i=0;i<itemcnt;i++)
+    {
+        if(myitemlist.at(i)->type() == PixItem::Type)
+        {
+            mypixlist.insert(pixcnt, dynamic_cast<PixItem *> (myitemlist.at(i)));
+            pixcnt++;
+        }
+    }
+
     QApplication::restoreOverrideCursor();
     return true;
 }
@@ -321,12 +339,15 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
          setMode(MoveItem);
          break;
     case InsertPixItem:
-         pixmap = new  QPixmap("/users/hyn/images/image.png");
+         pixmap = new  QPixmap("/users/hyn/images/deviceItem.jpg");
          pixItem = new PixItem(pixmap);
          if(pixItem)
          {
              addItem(pixItem);
              pixItem->setPos(mouseEvent->scenePos());
+             pixItem->id=pixid;
+             myPixList.insert(pixid, pixItem);
+             pixid++;
          }
          //        emit textInserted(textItem);//主要是想改变场景的模式
          setMode(MoveItem);

@@ -2,7 +2,7 @@
 //#include "ui_deviceinfo.h"
 #include "customplotwindow.h"
 #include "baseitem.h"
-#include "pixitem.h"
+#include "table.h"
 
 deviceinfo::deviceinfo(BaseItem *baseItem, QWidget *parent) :
     QMainWindow(parent),
@@ -109,6 +109,8 @@ deviceinfo::deviceinfo(PixItem *pixItem, QWidget *parent) :
     ui->tableWidget->setHorizontalHeaderLabels(headers);
     ui->tableWidget->horizontalHeader()->setStretchLastSection(true);//自动填满控件
 
+
+/*
     ui->tableWidget->setItem(0, 0, new QTableWidgetItem("CPU使用率"));
     ui->tableWidget->setItem(0, 1, new QTableWidgetItem("0"));
     ui->tableWidget->setItem(0, 2, new QTableWidgetItem("30%"));
@@ -125,7 +127,7 @@ deviceinfo::deviceinfo(PixItem *pixItem, QWidget *parent) :
     ui->tableWidget->setItem(3, 1, new QTableWidgetItem("0"));
     ui->tableWidget->setItem(3, 2, new QTableWidgetItem("100Mbps"));
     ui->tableWidget->setItem(3, 3, new QTableWidgetItem("50Mbps"));
-
+*/
     ui->listWidget->setAlternatingRowColors(true);//背景颜色隔行区分
 
     for(int i=0;i<10;i++)
@@ -163,8 +165,13 @@ deviceinfo::deviceinfo(PixItem *pixItem, QWidget *parent) :
 
     connect(ui->tableWidget,SIGNAL(cellDoubleClicked(int,int)),this,SLOT(plotSlot(int,int)));
     connect(ui->tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(statusConfirm(int,int)));
-}
 
+//    connect(ui->lineEdit,SIGNAL(textChanged(QString)),this,SLOT(getid()));
+//    connect(ui->lineEdit_2,SIGNAL(textChanged(QString)),this,SLOT(getname()));
+    connect(ui->pushButton,SIGNAL(clicked()),this,SLOT(getname()));
+    connect(ui->pushButton,SIGNAL(clicked()),this,SLOT(getid()));
+    connect(ui->pushButton_2,SIGNAL(clicked()),this,SLOT(addTable()));
+}
 
 
 deviceinfo::~deviceinfo()
@@ -190,5 +197,49 @@ void deviceinfo::statusConfirm(int i, int j)
     {
         const QColor color = QColor(255,255,255);
         tableItem->setBackgroundColor(color);
+    }
+}
+
+
+void deviceinfo::setid(int deviceID)
+{
+    ui->lineEdit->setText(QString("%1").arg(deviceID));
+}
+
+void deviceinfo::setname(QString devicename)
+{
+    ui->lineEdit_2->setText(devicename);
+}
+
+void deviceinfo::getname()
+{
+    mypixItem->name = ui->lineEdit_2->text();
+}
+
+void deviceinfo::getid()
+{
+    bool ok;
+    mypixItem->id = (ui->lineEdit->text()).toInt(&ok,10);
+}
+
+void deviceinfo::addTable()
+{
+    myParam.paramName = ui->lineEdit_3->text();
+    myParam.paramMin = ui->lineEdit_4->text();
+    myParam.paramMax = ui->lineEdit_5->text();
+    mypixItem->deviceParamList.append(myParam);
+    myParamList.append(myParam);
+    setTable(myParamList);
+//    ui->tableWidget->setItem(0, 0, new QTableWidgetItem(ui->lineEdit_3->text()));
+}
+
+void deviceinfo::setTable(QList<DeviceParam> paramList)
+{
+    for(int i=0; i<paramList.count(); i++)
+    {
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(paramList.at(i).paramName));
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(paramList.at(i).paramMin));
+        ui->tableWidget->setItem(i, 2, new QTableWidgetItem(paramList.at(i).paramMax));
+//        ui->tableWidget->setItem(i, 3, new QTableWidgetItem(paramList.at(i).paramValue));
     }
 }
