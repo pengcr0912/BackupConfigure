@@ -7,7 +7,6 @@
 class BaseItem;
 class PixItem;
 class QColor;
-class table;
 
 namespace Ui {
 class deviceinfo;
@@ -18,21 +17,21 @@ class deviceinfo : public QMainWindow
     Q_OBJECT
 
 public:
-    QString myname;
+    QString myName;
     QList<DeviceParam> myParamList;
     DeviceParam myParam;
+    int myRowCnt;
+    QString insertline;
+
 public:
     explicit deviceinfo(BaseItem *baseItem, QWidget *parent = 0);
     explicit deviceinfo(PixItem *pixItem, QWidget *parent = 0);
     ~deviceinfo();
 
 public slots:
-    void setid(int deviceID);
-    void setname(QString devicename);
+    void setCode(QString deviceCode);
+    void setName(QString deviceName);
     void setTable(QList<DeviceParam> paramList);
-    void getname();
-    void getid();
-    void addTable();
 
 private:
     Ui::deviceinfo *ui;
@@ -42,11 +41,13 @@ private:
 
     BaseItem *myItem;
     PixItem *mypixItem;
-    table *mytable;
 
 private slots:
     void plotSlot(int i,int j);
-    void statusConfirm(int i,int j);
+    void deleteParam();
+    void setConfirm();
+    void addTable();
+//    void statusConfirm(int i,int j);
 
 };
 

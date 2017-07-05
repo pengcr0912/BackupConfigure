@@ -4,6 +4,11 @@
 #include <QGraphicsPixmapItem>
 #include <QPixmap>
 #include <QPainter>
+#include <QtSql/QSqlDatabase>
+#include <QStringList>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QDebug>
 
 struct DeviceParam
 {
@@ -27,9 +32,10 @@ public:
 
 //private:
     QPixmap pix;     		//作为图元显示的图片
-    int id;
-    QString name;
+    QString deviceCode;
+    QString deviceName;
     QList<DeviceParam> deviceParamList;
+
 
 /*
 protected:
@@ -43,7 +49,7 @@ protected:
 };
 
 
-inline QDataStream &operator <<(QDataStream &out, const QList<DeviceParam> &deviceParam)
+inline QDataStream &operator << (QDataStream &out, const QList<DeviceParam> &deviceParam)
 {
     out << deviceParam.count();
     for(int i=0; i<deviceParam.count(); i++)

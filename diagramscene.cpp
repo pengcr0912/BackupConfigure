@@ -14,7 +14,6 @@ DiagramScene::DiagramScene(QObject *parent)
     circle = NULL;
     line = NULL;
     textItem = NULL;
-    pixid=0;
     myTextColor = Qt::black;
 
 }
@@ -127,8 +126,8 @@ bool DiagramScene::writeFile(QFile &file)
             out << pixItem->type()
                 << pixItem->pos()
                 << pixItem->pix
-                << pixItem->id
-                << pixItem->name
+                << pixItem->deviceCode
+                << pixItem->deviceName
                 << pixItem->deviceParamList;
         }
     }
@@ -234,7 +233,7 @@ bool DiagramScene::readFile(QFile &file)
         }
         else if(itemType == QGraphicsItem::UserType + 7)//
         {
-            in >> mypos >> myPixmap >> pixid >> pixname >> myDeviceParamList;
+            in >> mypos >> myPixmap >> code >> name >> myDeviceParamList;
 
             if(in.status() != QDataStream::Ok)
             {
@@ -243,8 +242,8 @@ bool DiagramScene::readFile(QFile &file)
             PixItem *pixItem = new PixItem(&myPixmap);
             pixItem->setPos(mypos);
 //            pixItem->setPixmap(myPixmap);
-            pixItem->id = pixid;
-            pixItem->name = pixname;
+            pixItem->deviceCode = code;
+            pixItem->deviceName = name;
             pixItem->deviceParamList = myDeviceParamList;
             addItem(pixItem);
         }
@@ -345,9 +344,6 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
          {
              addItem(pixItem);
              pixItem->setPos(mouseEvent->scenePos());
-             pixItem->id=pixid;
-             myPixList.insert(pixid, pixItem);
-             pixid++;
          }
          //        emit textInserted(textItem);//主要是想改变场景的模式
          setMode(MoveItem);

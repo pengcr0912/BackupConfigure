@@ -79,8 +79,8 @@ private:
     QColor myTextColor;
     QFont myTextFont;
 
-    int pixid;
-    QString pixname;
+    QString code;
+    QString name;
     QList<PixItem*> myPixList;
 //signals:
     //void itemMoved(DiagramItem *movedItem,const QPointF &movedFromPosition);

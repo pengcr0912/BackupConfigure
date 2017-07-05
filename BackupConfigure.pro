@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
@@ -26,8 +27,7 @@ SOURCES += main.cpp\
     deviceinfo.cpp \
     customplotwindow.cpp \
     qcustomplot.cpp \
-    pixitem.cpp \
-    table.cpp
+    pixitem.cpp
 
 HEADERS  += mainwindow.h \
     textitem.h \
@@ -42,8 +42,7 @@ HEADERS  += mainwindow.h \
     deviceinfo.h \
     customplotwindow.h \
     qcustomplot.h \
-    pixitem.h \
-    table.h
+    pixitem.h
 
 OTHER_FILES += \
     MyConfigure.pro.user \
