@@ -4,15 +4,16 @@
 #include "ui_deviceinfo.h"
 #include <QMainWindow>
 #include "pixitem.h"
+
 class BaseItem;
 class PixItem;
 class QColor;
 
 namespace Ui {
-class deviceinfo;
+class DeviceInfo;
 }
 
-class deviceinfo : public QMainWindow
+class DeviceInfo : public QMainWindow
 {
     Q_OBJECT
 
@@ -21,20 +22,19 @@ public:
     QList<DeviceParam> myParamList;
     DeviceParam myParam;
     int myRowCnt;
-    QString insertline;
 
 public:
-    explicit deviceinfo(BaseItem *baseItem, QWidget *parent = 0);
-    explicit deviceinfo(PixItem *pixItem, QWidget *parent = 0);
-    ~deviceinfo();
+    explicit DeviceInfo(BaseItem *baseItem, QWidget *parent = 0);
+    explicit DeviceInfo(PixItem *pixItem, QWidget *parent = 0);
+    ~DeviceInfo();
 
 public slots:
-    void setCode(QString deviceCode);
-    void setName(QString deviceName);
+    void setCode(QString code);
+    void setName(QString name);
     void setTable(QList<DeviceParam> paramList);
 
 private:
-    Ui::deviceinfo *ui;
+    Ui::DeviceInfo *ui;
 
     QTableWidgetItem* tableItem;
     QListWidgetItem* listItem;

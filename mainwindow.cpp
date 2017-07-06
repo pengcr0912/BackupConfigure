@@ -23,8 +23,17 @@ MainWindow::MainWindow(QWidget *parent)
     createToolBox();
     createMenus();
     createToolbars();
-
-
+/*
+    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+    db.setHostName("localhost");
+    db.setDatabaseName("jtgl");
+    db.setUserName("root");
+    db.setPassword("840912");
+    if(db.open())
+        qDebug() << "open database succeed！";
+    else
+        qDebug() << "open database failed！";
+*/
     myDiagramScene = new DiagramScene;
     myDiagramScene->setSceneRect(QRect(0, 0, 2000, 1500));
 

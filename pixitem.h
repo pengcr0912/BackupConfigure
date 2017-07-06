@@ -4,11 +4,7 @@
 #include <QGraphicsPixmapItem>
 #include <QPixmap>
 #include <QPainter>
-#include <QtSql/QSqlDatabase>
-#include <QStringList>
-#include <QSqlError>
-#include <QSqlQuery>
-#include <QDebug>
+//#include "deviceinfo.h"
 
 struct DeviceParam
 {
@@ -17,7 +13,6 @@ struct DeviceParam
     QString paramMax;
     QString paramValue;
 };
-//class deviceinfo;
 
 class PixItem : public QGraphicsItem
 {
@@ -49,29 +44,29 @@ protected:
 };
 
 
-inline QDataStream &operator << (QDataStream &out, const QList<DeviceParam> &deviceParam)
+inline QDataStream &operator << (QDataStream &out, const QList<DeviceParam> &deviceParamList)
 {
-    out << deviceParam.count();
-    for(int i=0; i<deviceParam.count(); i++)
+    out << deviceParamList.count();
+    for(int i=0; i<deviceParamList.count(); i++)
     {
-        out << deviceParam.at(i).paramName;
-        out << deviceParam.at(i).paramMin;
-        out << deviceParam.at(i).paramMax;
+        out << deviceParamList.at(i).paramName;
+        out << deviceParamList.at(i).paramMin;
+        out << deviceParamList.at(i).paramMax;
     }
     return out;
 }
 
-inline QDataStream &operator >> (QDataStream &in, QList<DeviceParam> &deviceParam)
+inline QDataStream &operator >> (QDataStream &in, QList<DeviceParam> &deviceParamList)
 {
     int count;
-    DeviceParam deviceParamtemp;
+    DeviceParam deviceParamTemp;
     in >> count;
     for(int i=0; i<count; i++)
     {
-        in >> deviceParamtemp.paramName;
-        in >> deviceParamtemp.paramMin;
-        in >> deviceParamtemp.paramMax;
-        deviceParam.append(deviceParamtemp);
+        in >> deviceParamTemp.paramName;
+        in >> deviceParamTemp.paramMin;
+        in >> deviceParamTemp.paramMax;
+        deviceParamList.append(deviceParamTemp);
     }
     return in;
 }

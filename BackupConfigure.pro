@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     deviceinfo.cpp \
     customplotwindow.cpp \
     qcustomplot.cpp \
-    pixitem.cpp
+    pixitem.cpp \
+    mysql.cpp
 
 HEADERS  += mainwindow.h \
     textitem.h \
@@ -42,7 +43,8 @@ HEADERS  += mainwindow.h \
     deviceinfo.h \
     customplotwindow.h \
     qcustomplot.h \
-    pixitem.h
+    pixitem.h \
+    mysql.h
 
 OTHER_FILES += \
     MyConfigure.pro.user \

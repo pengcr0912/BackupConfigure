@@ -361,7 +361,7 @@ void BaseItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 //    PropertiesDialog dialog(this);
 //    dialog.exec();
 
-    deviceinfo* devicewindow = new deviceinfo(this);
+    DeviceInfo* devicewindow = new DeviceInfo(this);
     devicewindow->show();
 }
 

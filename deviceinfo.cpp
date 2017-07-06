@@ -3,9 +3,9 @@
 #include "customplotwindow.h"
 #include "baseitem.h"
 
-deviceinfo::deviceinfo(BaseItem *baseItem, QWidget *parent) :
+DeviceInfo::DeviceInfo(BaseItem *baseItem, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::deviceinfo)
+    ui(new Ui::DeviceInfo)
 {
     ui->setupUi(this);
 
@@ -86,9 +86,9 @@ deviceinfo::deviceinfo(BaseItem *baseItem, QWidget *parent) :
 }
 
 
-deviceinfo::deviceinfo(PixItem *pixItem, QWidget *parent) :
+DeviceInfo::DeviceInfo(PixItem *pixItem, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::deviceinfo)
+    ui(new Ui::DeviceInfo)
 {
     ui->setupUi(this);
 
@@ -143,12 +143,12 @@ deviceinfo::deviceinfo(PixItem *pixItem, QWidget *parent) :
 }
 
 
-deviceinfo::~deviceinfo()
+DeviceInfo::~DeviceInfo()
 {
     delete ui;
 }
 
-void deviceinfo::plotSlot(int i, int j)
+void DeviceInfo::plotSlot(int i, int j)
 {
 /*    CustomPlotWindow* cp = new CustomPlotWindow;
 
@@ -170,7 +170,7 @@ void deviceinfo::statusConfirm(int i, int j)
 }
 */
 
-void deviceinfo::deleteParam()
+void DeviceInfo::deleteParam()
 {
     int i = ui->lineEdit_3->text().toInt();
     if(i > 0 && i <= ui->tableWidget->rowCount())
@@ -182,17 +182,17 @@ void deviceinfo::deleteParam()
         QMessageBox::about(NULL, "warning", "请输入合适的行号");
 }
 
-void deviceinfo::setCode(QString deviceCode)
+void DeviceInfo::setCode(QString code)
 {
-    ui->lineEdit->setText(deviceCode);
+    ui->lineEdit->setText(code);
 }
 
-void deviceinfo::setName(QString deviceName)
+void DeviceInfo::setName(QString name)
 {
-    ui->lineEdit_2->setText(deviceName);
+    ui->lineEdit_2->setText(name);
 }
 
-void deviceinfo::addTable()
+void DeviceInfo::addTable()
 {
 //    myParam.paramName = ui->lineEdit_3->text();
 //    myParam.paramMin = ui->lineEdit_4->text();
@@ -210,7 +210,7 @@ void deviceinfo::addTable()
 //    ui->tableWidget->setItem(0, 0, new QTableWidgetItem(ui->lineEdit_3->text()));
 }
 
-void deviceinfo::setTable(QList<DeviceParam> paramList)
+void DeviceInfo::setTable(QList<DeviceParam> paramList)
 {
     myRowCnt = paramList.count();
     ui->tableWidget->setRowCount(myRowCnt);
@@ -223,7 +223,7 @@ void deviceinfo::setTable(QList<DeviceParam> paramList)
     }
 }
 
-void deviceinfo::setConfirm()
+void DeviceInfo::setConfirm()
 {
     int i,j;
     mypixItem->deviceCode = ui->lineEdit->text();
@@ -251,54 +251,43 @@ void deviceinfo::setConfirm()
         myParam.paramMax = ui->tableWidget->item(i,2)->text();
         mypixItem->deviceParamList.append(myParam);
     }
-
 /*
     QString m_content;
-    QStringList drivers = QSqlDatabase::drivers();
-    qDebug() << drivers;
-    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-    db.setHostName("localhost");
-    db.setDatabaseName("jtgl");
-    db.setUserName("root");
-    db.setPassword("840912");
-    if(db.open())
+    QSqlQuery query;
+    QString insertline;
+    QStringList strTables = myScene->db.tables();
+    if(strTables.contains("DeviceParam")) //新建表时需注意，如果表已经存在会报错
     {
-        qDebug() << "succeed！";
+        insertline = QString("truncate table DeviceParam");
+        query.exec(insertline);
 
-        QSqlQuery query;
-        QStringList strTables = db.tables();
-        if(strTables.contains("DeviceParam")) //新建表时需注意，如果表已经存在会报错
+        for(i=0;i<rowCnt;i++)
         {
-            insertline = QString("insert into DeviceParam values('遥控前端','TCF','CPU使用率','0','50')");
-            bool flag = query.exec(insertline);
-
-            query.exec("select count(*) from information_schema.COLUMNS  where table_schema = 'jtgl' and table_name = 'DeviceParam'");//获得表中共有几列
-            query.next();
-            int columns = query.value(0).toInt();
-
-            query.exec("select * from DeviceParam");
-            //query.exec("select * from student where id < 3");//条件查询
-            //query.exec("select * from student where time < '2018-06-14'");//条件查询
-            while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
-            {
-                for(int i=0;i<columns;i++)
-                {
-                    m_content = query.value(i).toString();
-                    qDebug() << m_content;
-                }
-            }
-            qDebug() << flag;
-
-            query.exec("SELECT FROM_UNIXTIME(1249488000,'%Y年%m月%d')");
-            query.next();
-            qDebug() << query.value(0).toString();
-
+            insertline = QString("insert into DeviceParam values('%1','%2','%3','%4','%5')")
+                    .arg(mypixItem->deviceName)
+                    .arg(mypixItem->deviceCode)
+                    .arg(ui->tableWidget->item(i,0)->text())
+                    .arg(ui->tableWidget->item(i,1)->text())
+                    .arg(ui->tableWidget->item(i,2)->text());
+            query.exec(insertline);
         }
-        else
-            qDebug() << "jtgl表不存在";
+
+        query.exec("select count(*) from information_schema.COLUMNS  where table_schema = 'jtgl' and table_name = 'DeviceParam'");//获得表中共有几列
+        query.next();
+        int columns = query.value(0).toInt();
+
+        query.exec("select * from DeviceParam");
+        while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
+        {
+            for(int i=0;i<columns;i++)
+            {
+                m_content = query.value(i).toString();
+                qDebug() << m_content;
+            }
+        }
 
     }
     else
-        qDebug() << db.lastError();
+        qDebug() << "jtgl表不存在";
 */
 }

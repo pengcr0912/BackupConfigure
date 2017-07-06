@@ -1,6 +1,5 @@
 #include "pixitem.h"
 #include <QGraphicsSceneHoverEvent>
-#include "deviceinfo.h"
 
 PixItem::PixItem(QPixmap *pixmap, QGraphicsItem* parent)
          :QGraphicsItem(parent)
@@ -32,11 +31,9 @@ void PixItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 //    PropertiesDialog dialog(this);
 //    dialog.exec();
 
-    deviceinfo* devicewindow = new deviceinfo(this);
-    devicewindow->setCode(deviceCode);
-    devicewindow->setName(deviceName);
-    devicewindow->setTable(deviceParamList);
-    devicewindow->show();
-//    pixid=devicewindow->getid();
-//    pixname=devicewindow->getname();
+    DeviceInfo* deviceWindow = new DeviceInfo(this);
+    deviceWindow->setCode(deviceCode);
+    deviceWindow->setName(deviceName);
+    deviceWindow->setTable(deviceParamList);
+    deviceWindow->show();
 }
