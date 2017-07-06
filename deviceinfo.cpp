@@ -254,15 +254,11 @@ void DeviceInfo::setTable(QList<DeviceParam> paramList)
         insertline=QString("select * from DeviceParam where deviceCode = '%1'").arg(mypixItem->deviceCode);
         query.exec(insertline);
 
-
-        ui->tableWidget->setRowCount(3);
-
-
         while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
         {
+            ui->tableWidget->setRowCount(myRowCnt+1);
             setCode(query.value(1).toString());
             setName(query.value(0).toString());
-            qDebug() << m_content;
             ui->tableWidget->setItem(myRowCnt, 0, new QTableWidgetItem(query.value(2).toString()));
             ui->tableWidget->setItem(myRowCnt, 1, new QTableWidgetItem(query.value(3).toString()));
             ui->tableWidget->setItem(myRowCnt, 2, new QTableWidgetItem(query.value(4).toString()));
