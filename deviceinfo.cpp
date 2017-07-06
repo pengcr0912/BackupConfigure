@@ -2,6 +2,11 @@
 //#include "ui_deviceinfo.h"
 #include "customplotwindow.h"
 #include "baseitem.h"
+#include <QtSql/QSqlDatabase>
+#include <QStringList>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QDebug>
 
 DeviceInfo::DeviceInfo(BaseItem *baseItem, QWidget *parent) :
     QMainWindow(parent),
@@ -212,7 +217,7 @@ void DeviceInfo::addTable()
 
 void DeviceInfo::setTable(QList<DeviceParam> paramList)
 {
-    myRowCnt = paramList.count();
+/*    myRowCnt = paramList.count();
     ui->tableWidget->setRowCount(myRowCnt);
     for(int i=0; i<myRowCnt; i++)
     {
@@ -221,6 +226,56 @@ void DeviceInfo::setTable(QList<DeviceParam> paramList)
         ui->tableWidget->setItem(i, 2, new QTableWidgetItem(paramList.at(i).paramMax));
 //        ui->tableWidget->setItem(i, 3, new QTableWidgetItem(paramList.at(i).paramValue));
     }
+*/
+
+    QSqlDatabase db;
+    QStringList drivers = QSqlDatabase::drivers();
+    qDebug() << drivers;
+    db = QSqlDatabase::addDatabase("QMYSQL");
+    db.setHostName("localhost");
+    db.setDatabaseName("jtgl");
+    db.setUserName("root");
+    db.setPassword("840912");
+    if(db.open())
+    {
+        qDebug() << "succeed！";
+
+    QString m_content;
+    QSqlQuery query;
+    QString insertline;
+    QStringList strTables = db.tables();
+    if(strTables.contains("DeviceParam")) //新建表时需注意，如果表已经存在会报错
+    {
+        query.exec("select count(*) from information_schema.COLUMNS  where table_schema = 'jtgl' and table_name = 'DeviceParam'");//获得表中共有几列
+        query.next();
+        int columns = query.value(0).toInt();
+
+        myRowCnt = 0;
+        insertline=QString("select * from DeviceParam where deviceCode = '%1'").arg(mypixItem->deviceCode);
+        query.exec(insertline);
+
+
+        ui->tableWidget->setRowCount(3);
+
+
+        while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
+        {
+            setCode(query.value(1).toString());
+            setName(query.value(0).toString());
+            qDebug() << m_content;
+            ui->tableWidget->setItem(myRowCnt, 0, new QTableWidgetItem(query.value(2).toString()));
+            ui->tableWidget->setItem(myRowCnt, 1, new QTableWidgetItem(query.value(3).toString()));
+            ui->tableWidget->setItem(myRowCnt, 2, new QTableWidgetItem(query.value(4).toString()));
+            myRowCnt++;
+        }
+
+    }
+    else
+        qDebug() << "jtgl表不存在";
+    }
+    else
+        qDebug() << db.lastError();
+
 }
 
 void DeviceInfo::setConfirm()
@@ -251,15 +306,29 @@ void DeviceInfo::setConfirm()
         myParam.paramMax = ui->tableWidget->item(i,2)->text();
         mypixItem->deviceParamList.append(myParam);
     }
-/*
+
+    QSqlDatabase db;
+    QStringList drivers = QSqlDatabase::drivers();
+    qDebug() << drivers;
+    db = QSqlDatabase::addDatabase("QMYSQL");
+    db.setHostName("localhost");
+    db.setDatabaseName("jtgl");
+    db.setUserName("root");
+    db.setPassword("840912");
+    if(db.open())
+    {
+        qDebug() << "succeed！";
+
     QString m_content;
     QSqlQuery query;
     QString insertline;
-    QStringList strTables = myScene->db.tables();
+    QStringList strTables = db.tables();
     if(strTables.contains("DeviceParam")) //新建表时需注意，如果表已经存在会报错
     {
-        insertline = QString("truncate table DeviceParam");
-        query.exec(insertline);
+        //insertline = QString("truncate table DeviceParam");//删除表中所有数据
+        insertline = QString("delete from DeviceParam where deviceCode = '%1'").arg(mypixItem->deviceCode);
+        bool flag = query.exec(insertline);
+        qDebug() << flag;
 
         for(i=0;i<rowCnt;i++)
         {
@@ -272,22 +341,11 @@ void DeviceInfo::setConfirm()
             query.exec(insertline);
         }
 
-        query.exec("select count(*) from information_schema.COLUMNS  where table_schema = 'jtgl' and table_name = 'DeviceParam'");//获得表中共有几列
-        query.next();
-        int columns = query.value(0).toInt();
-
-        query.exec("select * from DeviceParam");
-        while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
-        {
-            for(int i=0;i<columns;i++)
-            {
-                m_content = query.value(i).toString();
-                qDebug() << m_content;
-            }
-        }
-
     }
     else
         qDebug() << "jtgl表不存在";
-*/
+    }
+    else
+        qDebug() << db.lastError();
+
 }

@@ -13,7 +13,6 @@ public:
     mySql();
     void open();
     QString insertline;
-    QSqlDatabase db;
 
 };
 

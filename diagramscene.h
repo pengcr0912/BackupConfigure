@@ -8,6 +8,7 @@
 #include "mainwindow.h"
 #include "ellipseitem.h"
 #include "pixitem.h"
+//#include "mysql.h"
 
 #include <QGraphicsScene>
 
@@ -73,6 +74,7 @@ private:
 
     PixItem *pixItem;
     QPixmap *pixmap;
+//    mySql *mysql;
 
     QPointF startPoint;
     Mode myMode;

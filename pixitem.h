@@ -4,7 +4,6 @@
 #include <QGraphicsPixmapItem>
 #include <QPixmap>
 #include <QPainter>
-//#include "deviceinfo.h"
 
 struct DeviceParam
 {

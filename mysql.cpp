@@ -7,9 +7,9 @@ mySql::mySql()
 
 void mySql::open()
 {
-
-//    QStringList drivers = QSqlDatabase::drivers();
-//    qDebug() << drivers;
+    QSqlDatabase db;
+    QStringList drivers = QSqlDatabase::drivers();
+    qDebug() << drivers;
     db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
     db.setDatabaseName("jtgl");

@@ -16,6 +16,8 @@ DiagramScene::DiagramScene(QObject *parent)
     textItem = NULL;
     myTextColor = Qt::black;
 
+//    mysql->open();
+
 }
 void DiagramScene::setMode(Mode mode )
 {
@@ -126,9 +128,9 @@ bool DiagramScene::writeFile(QFile &file)
             out << pixItem->type()
                 << pixItem->pos()
                 << pixItem->pix
-                << pixItem->deviceCode
-                << pixItem->deviceName
-                << pixItem->deviceParamList;
+                << pixItem->deviceCode;
+//                << pixItem->deviceName
+//                << pixItem->deviceParamList;
         }
     }
 
@@ -233,7 +235,8 @@ bool DiagramScene::readFile(QFile &file)
         }
         else if(itemType == QGraphicsItem::UserType + 7)//
         {
-            in >> mypos >> myPixmap >> code >> name >> myDeviceParamList;
+//            in >> mypos >> myPixmap >> code >> name >> myDeviceParamList;
+            in >> mypos >> myPixmap >> code;
 
             if(in.status() != QDataStream::Ok)
             {
@@ -243,8 +246,8 @@ bool DiagramScene::readFile(QFile &file)
             pixItem->setPos(mypos);
 //            pixItem->setPixmap(myPixmap);
             pixItem->deviceCode = code;
-            pixItem->deviceName = name;
-            pixItem->deviceParamList = myDeviceParamList;
+//            pixItem->deviceName = name;
+//            pixItem->deviceParamList = myDeviceParamList;
             addItem(pixItem);
         }
 
