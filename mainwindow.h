@@ -4,8 +4,7 @@
 #include <QMainWindow>
 #include "diagramscene.h"
 #include "propertiesdialog.h"
-#include <QToolButton>
-#include <QComboBox>
+#include <QtWidgets>
 #include <QGraphicsView>
 #include <QDatetime>
 #include <QTimer>
@@ -14,6 +13,7 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QDebug>
+#include "queryresult.h"
 
 //#pragma execution_character_set("utf-8");
 
@@ -35,6 +35,12 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
     QGraphicsView *view;
+
+    QSqlDatabase db;
+    QTimer *timer;
+    QDateTimeEdit* timeStart;
+    QDateTimeEdit* timeEnd;
+    int rowCnt;
 protected:
 //    void contextMenuEvent(QContextMenuEvent *event);
 
@@ -86,6 +92,8 @@ private slots:
     void ungroup();
 
     void insertLog();
+    void startInsert();
+    void stopInsert();
 
 private:
     void createActions();

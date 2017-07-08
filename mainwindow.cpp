@@ -1,5 +1,3 @@
-
-#include <QtWidgets>
 #include "mainwindow.h"
 #include "diagramscene.h"
 #include <QtDebug>
@@ -23,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     createToolBox();
     createMenus();
     createToolbars();
-/*
+    /*
     QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
     db.setDatabaseName("jtgl");
@@ -34,6 +32,12 @@ MainWindow::MainWindow(QWidget *parent)
     else
         qDebug() << "open database failed！";
 */
+    db = QSqlDatabase::addDatabase("QMYSQL");
+    db.setHostName("localhost");
+    db.setDatabaseName("jtgl");
+    db.setUserName("root");
+    db.setPassword("840912");
+
     myDiagramScene = new DiagramScene;
     myDiagramScene->setSceneRect(QRect(0, 0, 2000, 1500));
 
@@ -43,14 +47,15 @@ MainWindow::MainWindow(QWidget *parent)
     view->setAutoFillBackground(true);
     view->setDragMode(QGraphicsView::RubberBandDrag);
 
-//    QPalette pal = palette();
-//    pal.setBrush(QPalette::Base, QPixmap(":/images/background.png"));
-//    pal.setColor(QPalette::HighlightedText, Qt::red);
-//    setPalette(pal);
+    //    QPalette pal = palette();
+    //    pal.setBrush(QPalette::Base, QPixmap(":/images/background.png"));
+    //    pal.setColor(QPalette::HighlightedText, Qt::red);
+    //    setPalette(pal);
 
-        QTimer *timer = new QTimer(this);
-        connect(timer,SIGNAL(timeout()),this,SLOT(insertLog()));
-        timer->start(5000);
+    timer = new QTimer(this);
+    connect(timer,SIGNAL(timeout()),this,SLOT(insertLog()));
+
+    rowCnt=0;
 
     QHBoxLayout *layout = new QHBoxLayout;
 
@@ -68,11 +73,10 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle("可重构“射频-数据”一体化平台  集同管理软件");
 
     setBackgroundRole(QPalette::Base);
-//    setCentralWidget(view);
-//    resize(500, 500);
-//    setCurrentFile("");
-    connect(myDiagramScene, SIGNAL(selectionChanged()),
-            this, SLOT(updateActions()));
+    //    setCentralWidget(view);
+    //    resize(500, 500);
+    //    setCurrentFile("");
+    connect(myDiagramScene, SIGNAL(selectionChanged()),this, SLOT(updateActions()));
     updateActions();
 }
 
@@ -82,153 +86,153 @@ MainWindow::~MainWindow()
 }
 void MainWindow::createActions()
 {
-   newAction = new QAction(tr("&New"), this);
-   newAction->setShortcuts(QKeySequence::New);
-   newAction->setStatusTip(tr("Creat a new file"));
-   newAction->setIcon(QIcon(":/images/new.png"));
-   connect(newAction, SIGNAL(triggered()),
-          this, SLOT(newFile()));
+    newAction = new QAction(tr("&New"), this);
+    newAction->setShortcuts(QKeySequence::New);
+    newAction->setStatusTip(tr("Creat a new file"));
+    newAction->setIcon(QIcon(":/images/new.png"));
+    connect(newAction, SIGNAL(triggered()),
+            this, SLOT(newFile()));
 
-   openAction = new QAction(tr("&Open"), this);
-   openAction->setShortcuts(QKeySequence::Open);
-   openAction->setStatusTip(tr("Open an existing file"));
-   openAction->setIcon(QIcon(":/images/open.png"));
-   connect(openAction, SIGNAL(triggered()),
-          this, SLOT(open()));
+    openAction = new QAction(tr("&Open"), this);
+    openAction->setShortcuts(QKeySequence::Open);
+    openAction->setStatusTip(tr("Open an existing file"));
+    openAction->setIcon(QIcon(":/images/open.png"));
+    connect(openAction, SIGNAL(triggered()),
+            this, SLOT(open()));
 
-   saveAction = new QAction(tr("&Save"), this);
-   saveAction->setShortcuts(QKeySequence::Save);
-   saveAction->setStatusTip(tr("Save the document to disk"));
-   saveAction->setIcon(QIcon(":/images/save.png"));
-   connect(saveAction, SIGNAL(triggered()),
-          this, SLOT(save()));
+    saveAction = new QAction(tr("&Save"), this);
+    saveAction->setShortcuts(QKeySequence::Save);
+    saveAction->setStatusTip(tr("Save the document to disk"));
+    saveAction->setIcon(QIcon(":/images/save.png"));
+    connect(saveAction, SIGNAL(triggered()),
+            this, SLOT(save()));
 
-   saveAsAction = new QAction(tr("Save &As..."), this);
-   saveAsAction->setShortcuts(QKeySequence::SaveAs);
-   saveAsAction->setStatusTip(tr("Save the file under a new "
-                                 "name"));
-   connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAs()));
+    saveAsAction = new QAction(tr("Save &As..."), this);
+    saveAsAction->setShortcuts(QKeySequence::SaveAs);
+    saveAsAction->setStatusTip(tr("Save the file under a new "
+                                  "name"));
+    connect(saveAsAction, SIGNAL(triggered()), this, SLOT(saveAs()));
 
-   for (int i = 0; i != MaxRecentFiles; ++i)
-   {
-       recentFileActions[i] = new QAction(this);
-       recentFileActions[i]->setVisible(false);
-       connect(recentFileActions[i], SIGNAL(triggered()),
-               this, SLOT(openRecentFile()));
-   }
+    for (int i = 0; i != MaxRecentFiles; ++i)
+    {
+        recentFileActions[i] = new QAction(this);
+        recentFileActions[i]->setVisible(false);
+        connect(recentFileActions[i], SIGNAL(triggered()),
+                this, SLOT(openRecentFile()));
+    }
 
-   cutAction = new QAction(tr("&Cut"), this);
-   cutAction->setShortcuts(QKeySequence::Cut);
-   cutAction->setStatusTip(tr("Cut the current selection's contents to the clipboard"));
-   cutAction->setIcon(QIcon(":/images/cut.png"));
-   connect(cutAction, SIGNAL(triggered()),
-          this, SLOT(cut()));
+    cutAction = new QAction(tr("&Cut"), this);
+    cutAction->setShortcuts(QKeySequence::Cut);
+    cutAction->setStatusTip(tr("Cut the current selection's contents to the clipboard"));
+    cutAction->setIcon(QIcon(":/images/cut.png"));
+    connect(cutAction, SIGNAL(triggered()),
+            this, SLOT(cut()));
 
-   copyAction = new QAction(tr("&Copy"), this);
-   copyAction->setShortcuts(QKeySequence::Copy);
-   copyAction->setStatusTip(tr("copy the current selection's contents to the clipboard"));
-   copyAction->setIcon(QIcon(":/images/copy.png"));
-   connect(copyAction, SIGNAL(triggered()),
-          this, SLOT(copy()));
+    copyAction = new QAction(tr("&Copy"), this);
+    copyAction->setShortcuts(QKeySequence::Copy);
+    copyAction->setStatusTip(tr("copy the current selection's contents to the clipboard"));
+    copyAction->setIcon(QIcon(":/images/copy.png"));
+    connect(copyAction, SIGNAL(triggered()),
+            this, SLOT(copy()));
 
-   pasteAction = new QAction(tr("&Paste"), this);
-   pasteAction->setShortcuts(QKeySequence::Paste);
-   pasteAction->setStatusTip(tr(" Paste the clipboard's contents into the current "
-                                "selection"));
-   pasteAction->setIcon(QIcon(":/images/paste.png"));
-   connect(pasteAction, SIGNAL(triggered()),
-          this, SLOT(paste()));
+    pasteAction = new QAction(tr("&Paste"), this);
+    pasteAction->setShortcuts(QKeySequence::Paste);
+    pasteAction->setStatusTip(tr(" Paste the clipboard's contents into the current "
+                                 "selection"));
+    pasteAction->setIcon(QIcon(":/images/paste.png"));
+    connect(pasteAction, SIGNAL(triggered()),
+            this, SLOT(paste()));
 
-   deleteAction = new QAction(tr("delete Item"),this);
-   deleteAction->setShortcut(QKeySequence::Delete);
-   deleteAction->setStatusTip(tr("Delete item from diagram"));
-   deleteAction->setIcon(QIcon(":/images/deleteItem.png"));
-   connect(deleteAction,SIGNAL(triggered()),
-           this,SLOT(deleteItem()));
+    deleteAction = new QAction(tr("delete Item"),this);
+    deleteAction->setShortcut(QKeySequence::Delete);
+    deleteAction->setStatusTip(tr("Delete item from diagram"));
+    deleteAction->setIcon(QIcon(":/images/deleteItem.png"));
+    connect(deleteAction,SIGNAL(triggered()),
+            this,SLOT(deleteItem()));
 
-   exitAction = new QAction(tr("&Exit"), this);
-   exitAction->setShortcuts(QKeySequence::Quit);
-   exitAction->setStatusTip(tr("Exit the application"));
-   exitAction->setIcon(QIcon(":/images/undo.png"));
-   connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
+    exitAction = new QAction(tr("&Exit"), this);
+    exitAction->setShortcuts(QKeySequence::Quit);
+    exitAction->setStatusTip(tr("Exit the application"));
+    exitAction->setIcon(QIcon(":/images/undo.png"));
+    connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
 
-   addCircleAction = new QAction(tr("actionAddCircle"),this);
-   addCircleAction->setIcon(QPixmap(":/images/circle.png").scaled(30,30));
-   connect(addCircleAction,SIGNAL(triggered()),
-           this, SLOT(addCircle()));
+    addCircleAction = new QAction(tr("actionAddCircle"),this);
+    addCircleAction->setIcon(QPixmap(":/images/circle.png").scaled(30,30));
+    connect(addCircleAction,SIGNAL(triggered()),
+            this, SLOT(addCircle()));
 
-   addRectangleAction = new QAction(tr("actionAddRectangle"),this);
-   addRectangleAction->setIcon(QIcon(":/images/rectangle.png"));
-   connect(addRectangleAction,SIGNAL(triggered()),
-           this, SLOT(addRect()));
+    addRectangleAction = new QAction(tr("actionAddRectangle"),this);
+    addRectangleAction->setIcon(QIcon(":/images/rectangle.png"));
+    connect(addRectangleAction,SIGNAL(triggered()),
+            this, SLOT(addRect()));
 
-   addTriangleAction = new QAction(tr("actionAddTriangle"),this);//no signal and slot, no use
-   addTriangleAction->setIcon(QIcon(":/images/triangle.png"));
+    addTriangleAction = new QAction(tr("actionAddTriangle"),this);//no signal and slot, no use
+    addTriangleAction->setIcon(QIcon(":/images/triangle.png"));
 
-   addLineAction = new QAction(tr("actionAddLine"),this);
-   addLineAction->setIcon(QIcon(":/images/line.png"));
-   connect(addLineAction,SIGNAL(triggered()),
-           this, SLOT(addLine()));
+    addLineAction = new QAction(tr("actionAddLine"),this);
+    addLineAction->setIcon(QIcon(":/images/line.png"));
+    connect(addLineAction,SIGNAL(triggered()),
+            this, SLOT(addLine()));
 
-   addTextAction = new QAction(tr("actionAddText"),this);
-   addTextAction->setIcon(QIcon(":/images/text.png"));
-   connect(addTextAction,SIGNAL(triggered()),
-           this,SLOT(addText()));
+    addTextAction = new QAction(tr("actionAddText"),this);
+    addTextAction->setIcon(QIcon(":/images/text.png"));
+    connect(addTextAction,SIGNAL(triggered()),
+            this,SLOT(addText()));
 
-   addPixAction = new QAction(tr("actionAddPix"),this);
-   addPixAction->setIcon(QIcon("/users/hyn/images/device.jpg"));
-   connect(addPixAction,SIGNAL(triggered()),
-           this,SLOT(addPix()));
+    addPixAction = new QAction(tr("actionAddPix"),this);
+    addPixAction->setIcon(QIcon("/users/hyn/images/device.jpg"));
+    connect(addPixAction,SIGNAL(triggered()),
+            this,SLOT(addPix()));
 
-   toFrontAction = new QAction(tr("Bring to &Front"), this);
-   toFrontAction->setShortcut(tr("Ctrl+F"));
-   toFrontAction->setStatusTip(tr("Bring item to front"));
-   toFrontAction->setIcon(QIcon(":/images/bringtofront.png"));
+    toFrontAction = new QAction(tr("Bring to &Front"), this);
+    toFrontAction->setShortcut(tr("Ctrl+F"));
+    toFrontAction->setStatusTip(tr("Bring item to front"));
+    toFrontAction->setIcon(QIcon(":/images/bringtofront.png"));
     connect(toFrontAction, SIGNAL(triggered()),
-          this, SLOT(bringToFront()));
+            this, SLOT(bringToFront()));
 
-   sendBackAction = new QAction(tr("send item to back"),this);
-   sendBackAction->setIcon(QIcon(":/images/sendtoback.png"));
-   connect(sendBackAction,SIGNAL(triggered()),
-           this,SLOT(sendToBack()));
+    sendBackAction = new QAction(tr("send item to back"),this);
+    sendBackAction->setIcon(QIcon(":/images/sendtoback.png"));
+    connect(sendBackAction,SIGNAL(triggered()),
+            this,SLOT(sendToBack()));
 
-   boldAction = new QAction("Bold",this);
-   boldAction->setShortcut(QKeySequence::Bold);
-   boldAction->setCheckable(true);//使其具有on和off两种状态
-   boldAction->setIcon(QIcon(":/images/bold.png"));
-   connect(boldAction,SIGNAL(triggered()),
-           this,SLOT(handleFontChange()));
+    boldAction = new QAction("Bold",this);
+    boldAction->setShortcut(QKeySequence::Bold);
+    boldAction->setCheckable(true);//使其具有on和off两种状态
+    boldAction->setIcon(QIcon(":/images/bold.png"));
+    connect(boldAction,SIGNAL(triggered()),
+            this,SLOT(handleFontChange()));
 
-   underlineAction = new QAction(tr("Underline"),this);
-   underlineAction->setShortcut(QKeySequence::Underline);
-   underlineAction->setCheckable(true);//使其具有on和off两种状态
-   underlineAction->setIcon(QIcon(":/images/underline.png"));
-   connect(underlineAction,SIGNAL(triggered()),
-           this,SLOT(handleFontChange()));
+    underlineAction = new QAction(tr("Underline"),this);
+    underlineAction->setShortcut(QKeySequence::Underline);
+    underlineAction->setCheckable(true);//使其具有on和off两种状态
+    underlineAction->setIcon(QIcon(":/images/underline.png"));
+    connect(underlineAction,SIGNAL(triggered()),
+            this,SLOT(handleFontChange()));
 
-   italicAction = new QAction(tr("Italic"),this);
-   italicAction->setShortcut(QKeySequence::Italic);
-   italicAction->setCheckable(true);//使其具有on和off两种状态
-   italicAction->setIcon(QIcon(":/images/italic.png"));
-   connect(italicAction,SIGNAL(triggered()),
-           this,SLOT(handleFontChange()));
+    italicAction = new QAction(tr("Italic"),this);
+    italicAction->setShortcut(QKeySequence::Italic);
+    italicAction->setCheckable(true);//使其具有on和off两种状态
+    italicAction->setIcon(QIcon(":/images/italic.png"));
+    connect(italicAction,SIGNAL(triggered()),
+            this,SLOT(handleFontChange()));
 
-   propertiesAction = new QAction(tr("properties"),this);//no use
-   connect(propertiesAction,SIGNAL(triggered()),
-           this,SLOT(properties()));
+    propertiesAction = new QAction(tr("properties"),this);//no use
+    connect(propertiesAction,SIGNAL(triggered()),
+            this,SLOT(properties()));
 
-   textColorAction = new QAction(tr("textcolor"),this);
-   textColorAction->setIcon(QIcon(creatTextColorIcon(Qt::black)));
-   connect(textColorAction,SIGNAL(triggered()),
-           this,SLOT(textColor()));
+    textColorAction = new QAction(tr("textcolor"),this);
+    textColorAction->setIcon(QIcon(creatTextColorIcon(Qt::black)));
+    connect(textColorAction,SIGNAL(triggered()),
+            this,SLOT(textColor()));
 
-   groupAction = new QAction(tr("group"),this);
-   connect(groupAction,SIGNAL(triggered()),
-           this,SLOT(group()));
+    groupAction = new QAction(tr("group"),this);
+    connect(groupAction,SIGNAL(triggered()),
+            this,SLOT(group()));
 
-   ungroupAction = new QAction(tr("ungroup"),this);
-   connect(ungroupAction, SIGNAL(triggered()),
-           this, SLOT(ungroup()));
+    ungroupAction = new QAction(tr("ungroup"),this);
+    connect(ungroupAction, SIGNAL(triggered()),
+            this, SLOT(ungroup()));
 
 }
 
@@ -321,10 +325,10 @@ void MainWindow::createToolbars()
     fillColorToolButton = new QToolButton;
     fillColorToolButton->setPopupMode(QToolButton::MenuButtonPopup);
     fillColorToolButton->setMenu(createColorMenu(SLOT(fillColorChanged()),
-                         Qt::black));
+                                                 Qt::black));
     fillAction = fillColorToolButton->menu()->defaultAction();
     fillColorToolButton->setIcon(createColorToolButtonIcon(
-    ":/images/floodfill.png", Qt::black));
+                                     ":/images/floodfill.png", Qt::black));
     connect(fillColorToolButton, SIGNAL(clicked()),
             this, SLOT(fillColorButtonTriggered()));
 
@@ -334,7 +338,7 @@ void MainWindow::createToolbars()
                                                  Qt::blue));
     lineColorAction = lineColorToolButton->menu()->defaultAction();
     lineColorToolButton->setIcon(createColorToolButtonIcon(
-    ":/images/linecolor.png", Qt::blue));
+                                     ":/images/linecolor.png", Qt::blue));
     connect(lineColorToolButton, SIGNAL(clicked()),
             this, SLOT(outlineColorButtonTriggered()));
 
@@ -420,19 +424,19 @@ void MainWindow::fillColorChanged()
 {
     fillAction = qobject_cast<QAction *>(sender());
     fillColorToolButton->setIcon(createColorToolButtonIcon(
-                 ":/images/floodfill.png",
-                 //qVariantValue<QColor>(fillAction->data())));
-                 fillAction->data().value<QColor>()));
+                                     ":/images/floodfill.png",
+                                     //qVariantValue<QColor>(fillAction->data())));
+                                     fillAction->data().value<QColor>()));
     fillColorButtonTriggered();
 }
 void MainWindow::outlineColorChanged()
 {
     lineColorAction = qobject_cast<QAction *>(sender());
     lineColorToolButton->setIcon(createColorToolButtonIcon(
-                 ":/images/linecolor.png",
-                 //qVariantValue<QColor>(lineColorAction->data())));
-                 //lineColorAction->data().value<QColor>()));
-                 Qt::red));
+                                     ":/images/linecolor.png",
+                                     //qVariantValue<QColor>(lineColorAction->data())));
+                                     //lineColorAction->data().value<QColor>()));
+                                     Qt::red));
     outlineColorButtonTriggered();
 }
 
@@ -452,13 +456,13 @@ QMenu *MainWindow::createLineMenu(const char *slot )
         lineMenu->addAction(action);
         if(lineWideList.at(i) == 1)
         {
-             lineMenu->setDefaultAction(action);
+            lineMenu->setDefaultAction(action);
         }
     }
     return lineMenu;
 }
 QIcon MainWindow::createColorToolButtonIcon(const QString &imageFile,
-                        QColor color)
+                                            QColor color)
 {
     QPixmap pixmap(50, 80);
     pixmap.fill(Qt::transparent);
@@ -552,8 +556,8 @@ void MainWindow::open()
     if (okToContinue())
     {
         QString fileName = QFileDialog::getOpenFileName(this,
-                                   tr("Open Configure"), ".",
-                                   tr("Configure files (*.cfg)"));
+                                                        tr("Open Configure"), ".",
+                                                        tr("Configure files (*.cfg)"));
         if (!fileName.isEmpty())
             loadFile(fileName);
     }
@@ -572,10 +576,10 @@ bool MainWindow::okToContinue()
     if (isWindowModified())
     {
         int r = QMessageBox::warning(this, tr("Configure"),
-                        tr("The Configure has been modified.\n"
-                           "Do you want to save your changes?"),
-                        QMessageBox::Yes | QMessageBox::No
-                        | QMessageBox::Cancel);
+                                     tr("The Configure has been modified.\n"
+                                        "Do you want to save your changes?"),
+                                     QMessageBox::Yes | QMessageBox::No
+                                     | QMessageBox::Cancel);
         if (r == QMessageBox::Yes) {
             return save();
         } else if (r == QMessageBox::Cancel) {
@@ -657,7 +661,7 @@ void MainWindow::setCurrentFile(const QString &fileName)
     }
 
     setWindowTitle(tr("%1[*]   %2").arg(shownName)
-                                   .arg(tr("可重构“射频-数据”一体化平台  集同管理软件")));
+                   .arg(tr("可重构“射频-数据”一体化平台  集同管理软件")));
 
 }
 void MainWindow::updateRecentFileActions()
@@ -674,8 +678,8 @@ void MainWindow::updateRecentFileActions()
         if (j < recentFiles.count())
         {
             QString text = tr("&%1 %2")
-                           .arg(j + 1)
-                           .arg(strippedName(recentFiles[j]));
+                    .arg(j + 1)
+                    .arg(strippedName(recentFiles[j]));
             recentFileActions[j]->setText(text);
             recentFileActions[j]->setData(recentFiles[j]);
             recentFileActions[j]->setVisible(true);
@@ -743,7 +747,7 @@ void MainWindow::paste()
                 if(rect)
                 {
                     rect->setRect(QRectF(QPointF(itemStr.at(2).toDouble(),itemStr.at(3).toDouble())
-                                        ,QSize(itemStr.at(4).toDouble(), itemStr.at(5).toDouble())));
+                                         ,QSize(itemStr.at(4).toDouble(), itemStr.at(5).toDouble())));
                     rect->setPen(QColor(itemStr.at(6)));
                     rect->setPen(int(itemStr.at(7).toInt()));
                     rect->setBrush(QBrush(QColor(itemStr.at(8))));
@@ -758,7 +762,7 @@ void MainWindow::paste()
                 if(circle)
                 {
                     circle->setRect(QRectF(QPointF(itemStr.at(2).toDouble(),itemStr.at(3).toDouble())
-                                        ,QSize(itemStr.at(4).toDouble(), itemStr.at(5).toDouble())));
+                                           ,QSize(itemStr.at(4).toDouble(), itemStr.at(5).toDouble())));
                     circle->setPen(QColor(itemStr.at(6)));
                     circle->setPen(int(itemStr.at(7).toInt()));
                     circle->setBrush(QBrush(QColor(itemStr.at(8))));
@@ -768,18 +772,18 @@ void MainWindow::paste()
                 break;
             }
             default:
-                    ;
+                ;
             }
         }
     }
 }
 void MainWindow::addCircle()
 {
-//设置当前的模式为circle，并且为item插入模式，这时场景中的mousePressEvent根据模式进行选择是否插入以及插入什么item
+    //设置当前的模式为circle，并且为item插入模式，这时场景中的mousePressEvent根据模式进行选择是否插入以及插入什么item
     myDiagramScene->setMode(DiagramScene::InsertCircleItem);
-//    diagramScene->setItemType(DiagramItem::Circle);
-//   QUndoCommand *addCommand = new AddCommand(DiagramItem::Circle, diagramScene);
-//   undoStack->push(addCommand);
+    //    diagramScene->setItemType(DiagramItem::Circle);
+    //   QUndoCommand *addCommand = new AddCommand(DiagramItem::Circle, diagramScene);
+    //   undoStack->push(addCommand);
 }
 void MainWindow::addRect()
 {
@@ -898,10 +902,10 @@ void MainWindow::group()
     {
         if(item->type() == GroupItem::Type)
         {
-           if(GroupItem *oldGroup = dynamic_cast<GroupItem *>(item))
-           {
-               myDiagramScene->myDestroyItemGroup(oldGroup);
-           }
+            if(GroupItem *oldGroup = dynamic_cast<GroupItem *>(item))
+            {
+                myDiagramScene->myDestroyItemGroup(oldGroup);
+            }
         }
     }
     QList<QGraphicsItem *> newItems = myDiagramScene->selectedItems();
@@ -919,22 +923,22 @@ void MainWindow::ungroup()
     {
         if(item->type() == GroupItem::Type)
         {
-           if(GroupItem *group = dynamic_cast<GroupItem *>(item))
-           {
-               myDiagramScene->myDestroyItemGroup(group);
-           }
+            if(GroupItem *group = dynamic_cast<GroupItem *>(item))
+            {
+                myDiagramScene->myDestroyItemGroup(group);
+            }
         }
     }
 }
 
 void MainWindow::createToolBox()
 {
-/*    buttonGroup = new QButtonGroup;
+    /*    buttonGroup = new QButtonGroup;
     buttonGroup->setExclusive(false);
     connect(buttonGroup, SIGNAL(buttonClicked(int)),
             this, SLOT(buttonGroupClicked(int)));
     QGridLayout *layout = new QGridLayout;*/
-/*
+    /*
     layout->addWidget(createCellWidget(tr("Conditional"),
                                DiagramItem::Conditional), 0, 0);
     layout->addWidget(createCellWidget(tr("Process"),
@@ -959,14 +963,14 @@ void MainWindow::createToolBox()
     layout->setColumnStretch(2, 10);
 */
     QWidget *itemWidget = new QWidget;
-//    itemWidget->setLayout(layout);
+    //    itemWidget->setLayout(layout);
 
-/*    backgroundButtonGroup = new QButtonGroup;
+    /*    backgroundButtonGroup = new QButtonGroup;
     connect(backgroundButtonGroup, SIGNAL(buttonClicked(QAbstractButton *)),
             this, SLOT(backgroundButtonGroupClicked(QAbstractButton *)));
 
     QGridLayout *backgroundLayout = new QGridLayout;*/
-/*    backgroundLayout->addWidget(createBackgroundCellWidget(tr("Blue Grid"),
+    /*    backgroundLayout->addWidget(createBackgroundCellWidget(tr("Blue Grid"),
                 ":/images/background1.png"), 0, 0);
     backgroundLayout->addWidget(createBackgroundCellWidget(tr("White Grid"),
                 ":/images/background2.png"), 0, 1);
@@ -979,29 +983,32 @@ void MainWindow::createToolBox()
     backgroundLayout->setColumnStretch(2, 10);
 */
     QWidget *backgroundWidget = new QWidget;
-//    backgroundWidget->setLayout(backgroundLayout);
+    //    backgroundWidget->setLayout(backgroundLayout);
 
 
-    QWidget *sqlWidget = new QWidget;   
+    QWidget *sqlWidget = new QWidget;
     QGridLayout *sqlLayout = new QGridLayout;
-    QDateTimeEdit* timeStart = new QDateTimeEdit(QDateTime::currentDateTime());
-    QDateTimeEdit* timeEnd = new QDateTimeEdit(QDateTime::currentDateTime());
+    timeStart = new QDateTimeEdit(QDateTime::currentDateTime());
+    timeEnd = new QDateTimeEdit(QDateTime::currentDateTime());
     QPushButton* pushButton_query = new QPushButton("查询");
-    QTableWidget* tableWidget_query = new QTableWidget(1,2);
+    QPushButton* pushButton_start = new QPushButton("开始插入日志");
+    QPushButton* pushButton_stop = new QPushButton("停止插入日志");
     sqlLayout->addWidget(timeStart, 0, 0, Qt::AlignHCenter);
     sqlLayout->addWidget(timeEnd, 1, 0, Qt::AlignCenter);
     sqlLayout->addWidget(pushButton_query, 2, 0, Qt::AlignCenter);
-    sqlLayout->addWidget(tableWidget_query, 3, 0, Qt::AlignCenter);
+    sqlLayout->addWidget(pushButton_start, 4, 0, Qt::AlignCenter);
+    sqlLayout->addWidget(pushButton_stop, 5, 0, Qt::AlignCenter);
     sqlWidget->setLayout(sqlLayout);
     connect(pushButton_query,SIGNAL(clicked()),this,SLOT(startQuery()));
-
+    connect(pushButton_start,SIGNAL(clicked()),this,SLOT(startInsert()));
+    connect(pushButton_stop,SIGNAL(clicked()),this,SLOT(stopInsert()));
     QWidget *paramWidget = new QWidget;
 
 
-//! [22]
+    //! [22]
     toolBox = new QToolBox;
-//    toolBox->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Ignored));
-//    toolBox->setMinimumWidth(itemWidget->sizeHint().width());
+    //    toolBox->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Ignored));
+    //    toolBox->setMinimumWidth(itemWidget->sizeHint().width());
     toolBox->addItem(itemWidget, tr("设备监控"));
     toolBox->addItem(backgroundWidget, tr("知识管理"));
     toolBox->addItem(sqlWidget, tr("数据查询"));
@@ -1011,18 +1018,18 @@ void MainWindow::createToolBox()
 
 void MainWindow::startQuery()
 {
-    QSqlDatabase db;
-    QStringList drivers = QSqlDatabase::drivers();
-    qDebug() << drivers;
+/*    QSqlDatabase db;
+    //QStringList drivers = QSqlDatabase::drivers();
+    //qDebug() << drivers;
     db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
     db.setDatabaseName("jtgl");
     db.setUserName("root");
-    db.setPassword("840912");
+    db.setPassword("840912");*/
+
     if(db.open())
     {
-        qDebug() << "succeed！";
-
+        //qDebug() << "succeed！";
         QString m_content;
         QSqlQuery query;
         QString insertline;
@@ -1033,16 +1040,34 @@ void MainWindow::startQuery()
             query.next();
             int columns = query.value(0).toInt();
 
-            query.exec("select * from DeviceLog");
-            //query.exec("select * from DeviceLog where dateTime < '2017-07-07 17:42:26'");//条件查询
+            //query.exec("select * from DeviceLog");
+            QString strStart = timeStart->dateTime().toString("yyyy-MM-dd hh:mm:ss");
+            QString strEnd = timeEnd->dateTime().toString("yyyy-MM-dd hh:mm:ss");
+            insertline=QString("select * from DeviceLog where dateTime > '%1' and dateTime < '%2'").arg(strStart).arg(strEnd);
+            query.exec(insertline);//条件查询
+
+            QStringList timeList;
+            QStringList logList;
             while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
             {
                 for(int i=0;i<columns;i++)
                 {
                     m_content = query.value(i).toString();
-                    qDebug() << m_content;
+                    if(i==0)
+                    {
+                        timeList.append(m_content);
+                    }
+                    else if(i==3)
+                    {
+                        logList.append(m_content);
+                    }
+                    //qDebug() << m_content;
                 }
             }
+
+            QueryResult* resultWindow = new QueryResult(this);
+            resultWindow->setTable(timeList, logList);//涉及大量copy，后续需改进
+            resultWindow->show();
         }
         else
             qDebug() << "jtgl表不存在";
@@ -1053,38 +1078,46 @@ void MainWindow::startQuery()
 
 void MainWindow::insertLog()
 {
-    QSqlDatabase db;
-    QStringList drivers = QSqlDatabase::drivers();
-    qDebug() << drivers;
+/*    //QStringList drivers = QSqlDatabase::drivers();
+    //qDebug() << drivers;
     db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
     db.setDatabaseName("jtgl");
     db.setUserName("root");
-    db.setPassword("840912");
+    db.setPassword("840912");*/
     if(db.open())
     {
-        qDebug() << "succeed！";
+        //qDebug() << "succeed！";
 
-    QString m_content;
-    QSqlQuery query;
-    QString insertline;
-    QStringList strTables = db.tables();
-    if(strTables.contains("DeviceLog")) //新建表时需注意，如果表已经存在会报错
-    {
-        QDateTime time = QDateTime::currentDateTime(); //获取系统现在的时间
-        QString str = time.toString("yyyy-MM-dd hh:mm:ss");//设置系统时间显示格式
-        insertline = QString("insert into DeviceLog values('%1','%2','%3','%4')")
-                .arg(str)
-                .arg("XXX")
-                .arg("0")
-                .arg(str+"插入一条日志");
-        bool flag = query.exec(insertline);
-        qDebug() << flag;
-    }
-    else
-        qDebug() << "jtgl表不存在";
+        QString m_content;
+        QSqlQuery query;
+        QString insertline;
+        QStringList strTables = db.tables();
+        if(strTables.contains("DeviceLog")) //新建表时需注意，如果表已经存在会报错
+        {
+            QDateTime time = QDateTime::currentDateTime(); //获取系统现在的时间
+            QString str = time.toString("yyyy-MM-dd hh:mm:ss");//设置系统时间显示格式
+            insertline = QString("insert into DeviceLog values('%1','%2','%3','%4')")
+                    .arg(str)
+                    .arg("XXX")
+                    .arg("0")
+                    .arg("插入一条日志");
+            bool flag = query.exec(insertline);
+            //qDebug() << flag;
+        }
+        else
+            qDebug() << "jtgl表不存在";
     }
     else
         qDebug() << db.lastError();
 }
 
+void MainWindow::startInsert()
+{
+    timer->start(2000);
+}
+
+void MainWindow::stopInsert()
+{
+    timer->stop();
+}

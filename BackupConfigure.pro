@@ -28,7 +28,8 @@ SOURCES += main.cpp\
     customplotwindow.cpp \
     qcustomplot.cpp \
     pixitem.cpp \
-    mysql.cpp
+    mysql.cpp \
+    queryresult.cpp
 
 HEADERS  += mainwindow.h \
     textitem.h \
@@ -44,7 +45,8 @@ HEADERS  += mainwindow.h \
     customplotwindow.h \
     qcustomplot.h \
     pixitem.h \
-    mysql.h
+    mysql.h \
+    queryresult.h
 
 OTHER_FILES += \
     MyConfigure.pro.user \
@@ -53,7 +55,8 @@ OTHER_FILES += \
 FORMS += \
     propertiesdialog.ui \
     deviceinfo.ui \
-    customplotwindow.ui
+    customplotwindow.ui \
+    queryresult.ui
 
 RESOURCES += \
     image.qrc

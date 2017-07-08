@@ -18,8 +18,8 @@ DeviceInfo::DeviceInfo(BaseItem *baseItem, QWidget *parent) :
 
     myRowCnt=0;
 
-//    myItem->setPen(Qt::green);
-//    myItem->setBrush(Qt::green);
+    //    myItem->setPen(Qt::green);
+    //    myItem->setBrush(Qt::green);
     myItem->setBrush(Qt::blue);
     myItem->update();
 
@@ -66,21 +66,21 @@ DeviceInfo::DeviceInfo(BaseItem *baseItem, QWidget *parent) :
 
     ui->listWidget->scrollToBottom();
 
-//    ui->tableWidget->setStyleSheet("selection-background-color: red");//鼠标点击处显示红色
-//    ui->tableWidget->setStyleSheet("QTableView::Item{background-color:#FF3EFF}");//行到背景色
-//    ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
+    //    ui->tableWidget->setStyleSheet("selection-background-color: red");//鼠标点击处显示红色
+    //    ui->tableWidget->setStyleSheet("QTableView::Item{background-color:#FF3EFF}");//行到背景色
+    //    ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
 
     tableItem = ui->tableWidget->item(2,3);
     if (tableItem)//对内容为空到item设置颜色会导致程序崩溃，因此需判断
     {
-    const QColor color = QColor(255,0,0);
-    tableItem->setBackgroundColor(color);
+        const QColor color = QColor(255,0,0);
+        tableItem->setBackgroundColor(color);
     }
 
 
 
     for(int k=0;k<ui->tableWidget->rowCount();k++)
-    ui->tableWidget->setRowHeight(k,20);
+        ui->tableWidget->setRowHeight(k,20);
 
     ui->toolBox->setItemText(0,"日志显示");
     ui->toolBox->setItemText(1,"参数配置");
@@ -100,9 +100,9 @@ DeviceInfo::DeviceInfo(PixItem *pixItem, QWidget *parent) :
     mypixItem = pixItem;
     myRowCnt=0;
 
-//    myItem->setPen(Qt::green);
-//    myItem->setBrush(Qt::green);
-//    mypixItem->setBrush(Qt::blue);
+    //    myItem->setPen(Qt::green);
+    //    myItem->setBrush(Qt::green);
+    //    mypixItem->setBrush(Qt::blue);
     mypixItem->update();
 
     Qt::WindowFlags flags = 0;
@@ -127,19 +127,19 @@ DeviceInfo::DeviceInfo(PixItem *pixItem, QWidget *parent) :
         ui->listWidget->addItem("2017-06-22 18:08:02:900 收到一条正常日志汇报");
     ui->listWidget->scrollToBottom();
 
-//    ui->tableWidget->setStyleSheet("selection-background-color: red");//鼠标点击处显示红色
-//    ui->tableWidget->setStyleSheet("QTableView::Item{background-color:#FF3EFF}");//行到背景色
-//    ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
+    //    ui->tableWidget->setStyleSheet("selection-background-color: red");//鼠标点击处显示红色
+    //    ui->tableWidget->setStyleSheet("QTableView::Item{background-color:#FF3EFF}");//行到背景色
+    //    ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
 
     for(int k=0;k<ui->tableWidget->rowCount();k++)
-    ui->tableWidget->setRowHeight(k,20);
+        ui->tableWidget->setRowHeight(k,20);
 
     ui->toolBox->setItemText(0,"日志显示");
     ui->toolBox->setItemText(1,"参数配置");
     ui->toolBox->setItemText(2,"控制指令");
 
     connect(ui->tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(plotSlot(int,int)));
-//    connect(ui->tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(statusConfirm(int,int)));
+    //    connect(ui->tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(statusConfirm(int,int)));
 
     connect(ui->pushButton_save,SIGNAL(clicked()),this,SLOT(save()));
     connect(ui->pushButton_delete,SIGNAL(clicked()),this,SLOT(deleteParam()));
@@ -154,7 +154,7 @@ DeviceInfo::~DeviceInfo()
 
 void DeviceInfo::plotSlot(int i, int j)
 {
-/*    CustomPlotWindow* cp = new CustomPlotWindow;
+    /*    CustomPlotWindow* cp = new CustomPlotWindow;
 
     Qt::WindowFlags flags = 0;
     flags |= Qt::WindowMinimizeButtonHint;
@@ -205,7 +205,7 @@ void DeviceInfo::setTable(QList<DeviceParam> paramList)
         ui->tableWidget->setItem(i, 0, new QTableWidgetItem(paramList.at(i).paramName));
         ui->tableWidget->setItem(i, 1, new QTableWidgetItem(paramList.at(i).paramMin));
         ui->tableWidget->setItem(i, 2, new QTableWidgetItem(paramList.at(i).paramMax));
-//        ui->tableWidget->setItem(i, 3, new QTableWidgetItem(paramList.at(i).paramValue));
+        //        ui->tableWidget->setItem(i, 3, new QTableWidgetItem(paramList.at(i).paramValue));
     }
 }
 
@@ -214,22 +214,22 @@ void DeviceInfo::addParam()
 {
     myRowCnt++;
     ui->tableWidget->setRowCount(myRowCnt);
-//    ui->tableWidget->setEditTriggers ( QAbstractItemView::NoEditTriggers );//整个table不可编辑
+    //    ui->tableWidget->setEditTriggers ( QAbstractItemView::NoEditTriggers );//整个table不可编辑
 
     tableItem = ui->tableWidget->item(myRowCnt-1,3);
     if(tableItem)
         tableItem->setFlags(tableItem->flags() & ~Qt::ItemIsEditable);
-//    mypixItem->deviceParamList.append(myParam);
-//    myParamList.append(myParam);
-//    setTable(myParamList);
-//    ui->tableWidget->setItem(0, 0, new QTableWidgetItem(ui->lineEdit_3->text()));
+    //    mypixItem->deviceParamList.append(myParam);
+    //    myParamList.append(myParam);
+    //    setTable(myParamList);
+    //    ui->tableWidget->setItem(0, 0, new QTableWidgetItem(ui->lineEdit_3->text()));
 }
 
 void DeviceInfo::setDevice()
 {
     QSqlDatabase db;
-    QStringList drivers = QSqlDatabase::drivers();
-    qDebug() << drivers;
+    //QStringList drivers = QSqlDatabase::drivers();
+    //qDebug() << drivers;
     db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
     db.setDatabaseName("jtgl");
@@ -237,33 +237,33 @@ void DeviceInfo::setDevice()
     db.setPassword("840912");
     if(db.open())
     {
-        qDebug() << "succeed！";
-    QSqlQuery query;
-    QString insertline;
-    QStringList strTables = db.tables();
-    if(strTables.contains("DeviceParam")) //新建表时需注意，如果表已经存在会报错
-    {
-        query.exec("select count(*) from information_schema.COLUMNS  where table_schema = 'jtgl' and table_name = 'DeviceParam'");//获得表中共有几列
-        query.next();
-        int columns = query.value(0).toInt();
-
-        myRowCnt = 0;
-        insertline=QString("select * from DeviceParam where deviceCode = '%1'").arg(mypixItem->deviceCode);
-        query.exec(insertline);
-
-        while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
+        //qDebug() << "succeed！";
+        QSqlQuery query;
+        QString insertline;
+        QStringList strTables = db.tables();
+        if(strTables.contains("DeviceParam")) //新建表时需注意，如果表已经存在会报错
         {
-            ui->tableWidget->setRowCount(myRowCnt+1);
-            setName(query.value(0).toString());
-            setCode(query.value(1).toString());
-            ui->tableWidget->setItem(myRowCnt, 0, new QTableWidgetItem(query.value(2).toString()));
-            ui->tableWidget->setItem(myRowCnt, 1, new QTableWidgetItem(query.value(3).toString()));
-            ui->tableWidget->setItem(myRowCnt, 2, new QTableWidgetItem(query.value(4).toString()));
-            myRowCnt++;
+            query.exec("select count(*) from information_schema.COLUMNS  where table_schema = 'jtgl' and table_name = 'DeviceParam'");//获得表中共有几列
+            query.next();
+            int columns = query.value(0).toInt();
+
+            myRowCnt = 0;
+            insertline=QString("select * from DeviceParam where deviceCode = '%1'").arg(mypixItem->deviceCode);
+            query.exec(insertline);
+
+            while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
+            {
+                ui->tableWidget->setRowCount(myRowCnt+1);
+                setName(query.value(0).toString());
+                setCode(query.value(1).toString());
+                ui->tableWidget->setItem(myRowCnt, 0, new QTableWidgetItem(query.value(2).toString()));
+                ui->tableWidget->setItem(myRowCnt, 1, new QTableWidgetItem(query.value(3).toString()));
+                ui->tableWidget->setItem(myRowCnt, 2, new QTableWidgetItem(query.value(4).toString()));
+                myRowCnt++;
+            }
         }
-    }
-    else
-        qDebug() << "jtgl表不存在";
+        else
+            qDebug() << "jtgl表不存在";
     }
     else
         qDebug() << db.lastError();
@@ -306,8 +306,8 @@ void DeviceInfo::save()
     }
 
     QSqlDatabase db;
-    QStringList drivers = QSqlDatabase::drivers();
-    qDebug() << drivers;
+    //QStringList drivers = QSqlDatabase::drivers();
+    //qDebug() << drivers;
     db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
     db.setDatabaseName("jtgl");
@@ -315,32 +315,31 @@ void DeviceInfo::save()
     db.setPassword("840912");
     if(db.open())
     {
-        qDebug() << "succeed！";
-
-    QString m_content;
-    QSqlQuery query;
-    QString insertline;
-    QStringList strTables = db.tables();
-    if(strTables.contains("DeviceParam")) //新建表时需注意，如果表已经存在会报错
-    {
-        //insertline = QString("truncate table DeviceParam");//删除表中所有数据
-        insertline = QString("delete from DeviceParam where deviceCode = '%1'").arg(mypixItem->deviceCode);
-        bool flag = query.exec(insertline);
-        qDebug() << flag;
-
-        for(i=0;i<rowCnt;i++)
+        //qDebug() << "succeed！";
+        QString m_content;
+        QSqlQuery query;
+        QString insertline;
+        QStringList strTables = db.tables();
+        if(strTables.contains("DeviceParam")) //新建表时需注意，如果表已经存在会报错
         {
-            insertline = QString("insert into DeviceParam values('%1','%2','%3','%4','%5')")
-                    .arg(mypixItem->deviceName)
-                    .arg(mypixItem->deviceCode)
-                    .arg(ui->tableWidget->item(i,0)->text())
-                    .arg(ui->tableWidget->item(i,1)->text())
-                    .arg(ui->tableWidget->item(i,2)->text());
-            query.exec(insertline);
+            //insertline = QString("truncate table DeviceParam");//删除表中所有数据
+            insertline = QString("delete from DeviceParam where deviceCode = '%1'").arg(mypixItem->deviceCode);
+            bool flag = query.exec(insertline);
+            //qDebug() << flag;
+
+            for(i=0;i<rowCnt;i++)
+            {
+                insertline = QString("insert into DeviceParam values('%1','%2','%3','%4','%5')")
+                        .arg(mypixItem->deviceName)
+                        .arg(mypixItem->deviceCode)
+                        .arg(ui->tableWidget->item(i,0)->text())
+                        .arg(ui->tableWidget->item(i,1)->text())
+                        .arg(ui->tableWidget->item(i,2)->text());
+                query.exec(insertline);
+            }
         }
-    }
-    else
-        qDebug() << "jtgl表不存在";
+        else
+            qDebug() << "jtgl表不存在";
     }
     else
         qDebug() << db.lastError();
