@@ -98,7 +98,6 @@ DeviceInfo::DeviceInfo(PixItem *pixItem, QWidget *parent) :
     ui->setupUi(this);
 
     mypixItem = pixItem;
-
     myRowCnt=0;
 
 //    myItem->setPen(Qt::green);
@@ -140,11 +139,11 @@ DeviceInfo::DeviceInfo(PixItem *pixItem, QWidget *parent) :
     ui->toolBox->setItemText(2,"控制指令");
 
     connect(ui->tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(plotSlot(int,int)));
-    connect(ui->pushButton_3,SIGNAL(clicked()),this,SLOT(deleteParam()));
 //    connect(ui->tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(statusConfirm(int,int)));
 
-    connect(ui->pushButton,SIGNAL(clicked()),this,SLOT(setConfirm()));
-    connect(ui->pushButton_2,SIGNAL(clicked()),this,SLOT(addTable()));
+    connect(ui->pushButton_save,SIGNAL(clicked()),this,SLOT(save()));
+    connect(ui->pushButton_delete,SIGNAL(clicked()),this,SLOT(deleteParam()));
+    connect(ui->pushButton_add,SIGNAL(clicked()),this,SLOT(addParam()));
 }
 
 
@@ -163,8 +162,8 @@ void DeviceInfo::plotSlot(int i, int j)
 
     cp->show();*/
 }
-/*
-void deviceinfo::statusConfirm(int i, int j)
+
+void DeviceInfo::statusConfirm(int i, int j)
 {
     tableItem = ui->tableWidget->item(i,j);
     if (tableItem)//对内容为空到item设置颜色会导致程序崩溃，因此需判断
@@ -173,11 +172,11 @@ void deviceinfo::statusConfirm(int i, int j)
         tableItem->setBackgroundColor(color);
     }
 }
-*/
+
 
 void DeviceInfo::deleteParam()
 {
-    int i = ui->lineEdit_3->text().toInt();
+    int i = ui->lineEdit_num->text().toInt();
     if(i > 0 && i <= ui->tableWidget->rowCount())
     {
         ui->tableWidget->removeRow(i-1);
@@ -189,19 +188,30 @@ void DeviceInfo::deleteParam()
 
 void DeviceInfo::setCode(QString code)
 {
-    ui->lineEdit->setText(code);
+    ui->lineEdit_code->setText(code);
 }
 
 void DeviceInfo::setName(QString name)
 {
-    ui->lineEdit_2->setText(name);
+    ui->lineEdit_name->setText(name);
 }
 
-void DeviceInfo::addTable()
+void DeviceInfo::setTable(QList<DeviceParam> paramList)
 {
-//    myParam.paramName = ui->lineEdit_3->text();
-//    myParam.paramMin = ui->lineEdit_4->text();
-//    myParam.paramMax = ui->lineEdit_5->text();
+    myRowCnt = paramList.count();
+    ui->tableWidget->setRowCount(myRowCnt);
+    for(int i=0; i<myRowCnt; i++)
+    {
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(paramList.at(i).paramName));
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(paramList.at(i).paramMin));
+        ui->tableWidget->setItem(i, 2, new QTableWidgetItem(paramList.at(i).paramMax));
+//        ui->tableWidget->setItem(i, 3, new QTableWidgetItem(paramList.at(i).paramValue));
+    }
+}
+
+
+void DeviceInfo::addParam()
+{
     myRowCnt++;
     ui->tableWidget->setRowCount(myRowCnt);
 //    ui->tableWidget->setEditTriggers ( QAbstractItemView::NoEditTriggers );//整个table不可编辑
@@ -215,19 +225,8 @@ void DeviceInfo::addTable()
 //    ui->tableWidget->setItem(0, 0, new QTableWidgetItem(ui->lineEdit_3->text()));
 }
 
-void DeviceInfo::setTable(QList<DeviceParam> paramList)
+void DeviceInfo::setDevice()
 {
-/*    myRowCnt = paramList.count();
-    ui->tableWidget->setRowCount(myRowCnt);
-    for(int i=0; i<myRowCnt; i++)
-    {
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(paramList.at(i).paramName));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(paramList.at(i).paramMin));
-        ui->tableWidget->setItem(i, 2, new QTableWidgetItem(paramList.at(i).paramMax));
-//        ui->tableWidget->setItem(i, 3, new QTableWidgetItem(paramList.at(i).paramValue));
-    }
-*/
-
     QSqlDatabase db;
     QStringList drivers = QSqlDatabase::drivers();
     qDebug() << drivers;
@@ -239,8 +238,6 @@ void DeviceInfo::setTable(QList<DeviceParam> paramList)
     if(db.open())
     {
         qDebug() << "succeed！";
-
-    QString m_content;
     QSqlQuery query;
     QString insertline;
     QStringList strTables = db.tables();
@@ -257,14 +254,13 @@ void DeviceInfo::setTable(QList<DeviceParam> paramList)
         while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
         {
             ui->tableWidget->setRowCount(myRowCnt+1);
-            setCode(query.value(1).toString());
             setName(query.value(0).toString());
+            setCode(query.value(1).toString());
             ui->tableWidget->setItem(myRowCnt, 0, new QTableWidgetItem(query.value(2).toString()));
             ui->tableWidget->setItem(myRowCnt, 1, new QTableWidgetItem(query.value(3).toString()));
             ui->tableWidget->setItem(myRowCnt, 2, new QTableWidgetItem(query.value(4).toString()));
             myRowCnt++;
         }
-
     }
     else
         qDebug() << "jtgl表不存在";
@@ -274,13 +270,19 @@ void DeviceInfo::setTable(QList<DeviceParam> paramList)
 
 }
 
-void DeviceInfo::setConfirm()
+void DeviceInfo::save()
 {
     int i,j;
-    mypixItem->deviceCode = ui->lineEdit->text();
-    mypixItem->deviceName = ui->lineEdit_2->text();
+    mypixItem->deviceCode = ui->lineEdit_code->text();
+    mypixItem->deviceName = ui->lineEdit_name->text();
     mypixItem->deviceParamList.clear();
     int rowCnt = ui->tableWidget->rowCount();
+
+    if(mypixItem->deviceCode.count() == 0)
+    {
+        QMessageBox::about(NULL, "warning", "设备代号不能为空");
+        return;
+    }
 
     for(i=0;i<rowCnt;i++)
     {
@@ -336,7 +338,6 @@ void DeviceInfo::setConfirm()
                     .arg(ui->tableWidget->item(i,2)->text());
             query.exec(insertline);
         }
-
     }
     else
         qDebug() << "jtgl表不存在";

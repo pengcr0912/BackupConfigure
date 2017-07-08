@@ -32,9 +32,10 @@ void PixItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 //    PropertiesDialog dialog(this);
 //    dialog.exec();
 
-    DeviceInfo* deviceWindow = new DeviceInfo(this);
-    deviceWindow->setCode(deviceCode);
+      DeviceInfo* deviceWindow = new DeviceInfo(this);
+//    deviceWindow->setCode(deviceCode);
 //    deviceWindow->setName(deviceName);
-    deviceWindow->setTable(deviceParamList);
-    deviceWindow->show();
+//    deviceWindow->setTable(deviceParamList);
+      deviceWindow->setDevice();//设备名称,设备代号和监视参数都从数据库中读取
+      deviceWindow->show();
 }

@@ -7,6 +7,13 @@
 #include <QToolButton>
 #include <QComboBox>
 #include <QGraphicsView>
+#include <QDatetime>
+#include <QTimer>
+#include <QtSql/QSqlDatabase>
+#include <QStringList>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QDebug>
 
 //#pragma execution_character_set("utf-8");
 
@@ -52,6 +59,8 @@ private slots:
     void itemSelected(QGraphicsItem *item);
     void handleFontChange();
 
+    void startQuery();
+
 private slots:
     void fillColorChanged();
     void fillColorButtonTriggered();
@@ -75,6 +84,8 @@ private slots:
 
     void group();
     void ungroup();
+
+    void insertLog();
 
 private:
     void createActions();

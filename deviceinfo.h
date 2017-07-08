@@ -33,6 +33,7 @@ public slots:
     void setCode(QString code);
     void setName(QString name);
     void setTable(QList<DeviceParam> paramList);
+    void setDevice();
 
 private:
     Ui::DeviceInfo *ui;
@@ -46,9 +47,9 @@ private:
 private slots:
     void plotSlot(int i,int j);
     void deleteParam();
-    void setConfirm();
-    void addTable();
-//    void statusConfirm(int i,int j);
+    void addParam();
+    void save();
+    void statusConfirm(int i,int j);
 
 };
 

@@ -70,7 +70,7 @@
      <attribute name="label">
       <string>Page 2</string>
      </attribute>
-     <widget class="QLineEdit" name="lineEdit">
+     <widget class="QLineEdit" name="lineEdit_code">
       <property name="geometry">
        <rect>
         <x>110</x>
@@ -80,7 +80,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_2">
+     <widget class="QLineEdit" name="lineEdit_name">
       <property name="geometry">
        <rect>
         <x>110</x>
@@ -90,7 +90,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QPushButton" name="pushButton_save">
       <property name="geometry">
        <rect>
         <x>110</x>
@@ -103,7 +103,7 @@
        <string>保存配置</string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_3">
+     <widget class="QLineEdit" name="lineEdit_num">
       <property name="geometry">
        <rect>
         <x>104</x>
@@ -113,7 +113,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_2">
+     <widget class="QPushButton" name="pushButton_add">
       <property name="geometry">
        <rect>
         <x>100</x>
@@ -165,7 +165,7 @@
        <string>行号</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_3">
+     <widget class="QPushButton" name="pushButton_delete">
       <property name="geometry">
        <rect>
         <x>162</x>

@@ -48,6 +48,9 @@ MainWindow::MainWindow(QWidget *parent)
 //    pal.setColor(QPalette::HighlightedText, Qt::red);
 //    setPalette(pal);
 
+        QTimer *timer = new QTimer(this);
+        connect(timer,SIGNAL(timeout()),this,SLOT(insertLog()));
+        timer->start(5000);
 
     QHBoxLayout *layout = new QHBoxLayout;
 
@@ -979,7 +982,19 @@ void MainWindow::createToolBox()
 //    backgroundWidget->setLayout(backgroundLayout);
 
 
-    QWidget *sqlWidget = new QWidget;
+    QWidget *sqlWidget = new QWidget;   
+    QGridLayout *sqlLayout = new QGridLayout;
+    QDateTimeEdit* timeStart = new QDateTimeEdit(QDateTime::currentDateTime());
+    QDateTimeEdit* timeEnd = new QDateTimeEdit(QDateTime::currentDateTime());
+    QPushButton* pushButton_query = new QPushButton("查询");
+    QTableWidget* tableWidget_query = new QTableWidget(1,2);
+    sqlLayout->addWidget(timeStart, 0, 0, Qt::AlignHCenter);
+    sqlLayout->addWidget(timeEnd, 1, 0, Qt::AlignCenter);
+    sqlLayout->addWidget(pushButton_query, 2, 0, Qt::AlignCenter);
+    sqlLayout->addWidget(tableWidget_query, 3, 0, Qt::AlignCenter);
+    sqlWidget->setLayout(sqlLayout);
+    connect(pushButton_query,SIGNAL(clicked()),this,SLOT(startQuery()));
+
     QWidget *paramWidget = new QWidget;
 
 
@@ -992,3 +1007,84 @@ void MainWindow::createToolBox()
     toolBox->addItem(sqlWidget, tr("数据查询"));
     toolBox->addItem(paramWidget, tr("参数设置"));
 }
+
+
+void MainWindow::startQuery()
+{
+    QSqlDatabase db;
+    QStringList drivers = QSqlDatabase::drivers();
+    qDebug() << drivers;
+    db = QSqlDatabase::addDatabase("QMYSQL");
+    db.setHostName("localhost");
+    db.setDatabaseName("jtgl");
+    db.setUserName("root");
+    db.setPassword("840912");
+    if(db.open())
+    {
+        qDebug() << "succeed！";
+
+        QString m_content;
+        QSqlQuery query;
+        QString insertline;
+        QStringList strTables = db.tables();
+        if(strTables.contains("DeviceLog")) //新建表时需注意，如果表已经存在会报错
+        {
+            query.exec("select count(*) from information_schema.COLUMNS  where table_schema = 'jtgl' and table_name = 'DeviceLog'");//获得表中共有几列
+            query.next();
+            int columns = query.value(0).toInt();
+
+            query.exec("select * from DeviceLog");
+            //query.exec("select * from DeviceLog where dateTime < '2017-07-07 17:42:26'");//条件查询
+            while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
+            {
+                for(int i=0;i<columns;i++)
+                {
+                    m_content = query.value(i).toString();
+                    qDebug() << m_content;
+                }
+            }
+        }
+        else
+            qDebug() << "jtgl表不存在";
+    }
+    else
+        qDebug() << db.lastError();
+}
+
+void MainWindow::insertLog()
+{
+    QSqlDatabase db;
+    QStringList drivers = QSqlDatabase::drivers();
+    qDebug() << drivers;
+    db = QSqlDatabase::addDatabase("QMYSQL");
+    db.setHostName("localhost");
+    db.setDatabaseName("jtgl");
+    db.setUserName("root");
+    db.setPassword("840912");
+    if(db.open())
+    {
+        qDebug() << "succeed！";
+
+    QString m_content;
+    QSqlQuery query;
+    QString insertline;
+    QStringList strTables = db.tables();
+    if(strTables.contains("DeviceLog")) //新建表时需注意，如果表已经存在会报错
+    {
+        QDateTime time = QDateTime::currentDateTime(); //获取系统现在的时间
+        QString str = time.toString("yyyy-MM-dd hh:mm:ss");//设置系统时间显示格式
+        insertline = QString("insert into DeviceLog values('%1','%2','%3','%4')")
+                .arg(str)
+                .arg("XXX")
+                .arg("0")
+                .arg(str+"插入一条日志");
+        bool flag = query.exec(insertline);
+        qDebug() << flag;
+    }
+    else
+        qDebug() << "jtgl表不存在";
+    }
+    else
+        qDebug() << db.lastError();
+}
+
