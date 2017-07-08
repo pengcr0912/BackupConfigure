@@ -2,23 +2,22 @@
 #define QUERYRESULT_H
 
 #include <QMainWindow>
-
-namespace Ui {
-class QueryResult;
-}
+#include <QTableWidget>
 
 class QueryResult : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit QueryResult(QWidget *parent = 0);
+    QueryResult(QWidget *parent = 0);
     ~QueryResult();
+
+    QTableWidget* tableWidget;
 
     void setTable(QStringList timeList, QStringList logList);
 
-private:
-    Ui::QueryResult *ui;
+    virtual void resizeEvent(QResizeEvent *event);
+
 };
 
 #endif // QUERYRESULT_H

@@ -1101,7 +1101,7 @@ void MainWindow::insertLog()
                     .arg(str)
                     .arg("XXX")
                     .arg("0")
-                    .arg("插入一条日志");
+                    .arg("XXXXXXXXXXXXXXXXXXXXXXXXXXXX插入一条日志");
             bool flag = query.exec(insertline);
             //qDebug() << flag;
         }

@@ -55,8 +55,7 @@ OTHER_FILES += \
 FORMS += \
     propertiesdialog.ui \
     deviceinfo.ui \
-    customplotwindow.ui \
-    queryresult.ui
+    customplotwindow.ui
 
 RESOURCES += \
     image.qrc
