@@ -14,6 +14,8 @@
 #include <QColorDialog>
 #include <QFontDialog>*/
 
+extern QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -21,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
     createToolBox();
     createMenus();
     createToolbars();
-    /*
+/*
     QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
     db.setDatabaseName("jtgl");
@@ -32,7 +34,6 @@ MainWindow::MainWindow(QWidget *parent)
     else
         qDebug() << "open database failed！";
 */
-    db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
     db.setDatabaseName("jtgl");
     db.setUserName("root");
@@ -78,6 +79,8 @@ MainWindow::MainWindow(QWidget *parent)
     //    setCurrentFile("");
     connect(myDiagramScene, SIGNAL(selectionChanged()),this, SLOT(updateActions()));
     updateActions();
+
+    //deviceInfo->mainWindow = this;
 }
 
 MainWindow::~MainWindow()
@@ -993,15 +996,30 @@ void MainWindow::createToolBox()
     QPushButton* pushButton_query = new QPushButton("查询");
     QPushButton* pushButton_start = new QPushButton("开始插入日志");
     QPushButton* pushButton_stop = new QPushButton("停止插入日志");
-    sqlLayout->addWidget(timeStart, 0, 0, Qt::AlignHCenter);
-    sqlLayout->addWidget(timeEnd, 1, 0, Qt::AlignCenter);
-    sqlLayout->addWidget(pushButton_query, 2, 0, Qt::AlignCenter);
-    sqlLayout->addWidget(pushButton_start, 4, 0, Qt::AlignCenter);
-    sqlLayout->addWidget(pushButton_stop, 5, 0, Qt::AlignCenter);
+    QLabel* label_start =  new QLabel("起始时间");
+    QLabel* label_end =  new QLabel("截止时间");
+    comboBox_style = new QComboBox;
+    comboBox_style->addItem("日志");
+    comboBox_style->addItem("参数");
+
+    sqlLayout->addWidget(label_start, 0, 0);
+    sqlLayout->addWidget(label_end, 1, 0);
+    sqlLayout->addWidget(timeStart, 0, 1);
+    sqlLayout->addWidget(timeEnd, 1, 1);
+    sqlLayout->addWidget(pushButton_query, 2, 1);
+    sqlLayout->addWidget(pushButton_start, 3, 1);
+    sqlLayout->addWidget(pushButton_stop, 4, 1);
+    sqlLayout->addWidget(comboBox_style, 5, 1);
+    sqlLayout->setRowStretch(10, 10);
+    sqlLayout->setColumnStretch(10, 10);
+    //sqlLayout->setMargin(0);
+    //sqlLayout->setSpacing(0);
     sqlWidget->setLayout(sqlLayout);
     connect(pushButton_query,SIGNAL(clicked()),this,SLOT(startQuery()));
     connect(pushButton_start,SIGNAL(clicked()),this,SLOT(startInsert()));
     connect(pushButton_stop,SIGNAL(clicked()),this,SLOT(stopInsert()));
+    connect(comboBox_style, SIGNAL(currentIndexChanged(QString)),
+            this, SLOT(styleChanged(QString)));
     QWidget *paramWidget = new QWidget;
 
 
@@ -1120,4 +1138,9 @@ void MainWindow::startInsert()
 void MainWindow::stopInsert()
 {
     timer->stop();
+}
+
+void MainWindow::styleChanged(const QString& style)
+{
+    qDebug() << style;
 }

@@ -8,6 +8,8 @@
 #include <QSqlQuery>
 #include <QDebug>
 
+extern QSqlDatabase db;
+
 DeviceInfo::DeviceInfo(BaseItem *baseItem, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::DeviceInfo)
@@ -227,14 +229,15 @@ void DeviceInfo::addParam()
 
 void DeviceInfo::setDevice()
 {
-    QSqlDatabase db;
+/*    QSqlDatabase db;
     //QStringList drivers = QSqlDatabase::drivers();
     //qDebug() << drivers;
     db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
     db.setDatabaseName("jtgl");
     db.setUserName("root");
-    db.setPassword("840912");
+    db.setPassword("840912");*/
+
     if(db.open())
     {
         //qDebug() << "succeed！";
@@ -305,14 +308,14 @@ void DeviceInfo::save()
         mypixItem->deviceParamList.append(myParam);
     }
 
-    QSqlDatabase db;
+/*    QSqlDatabase db;
     //QStringList drivers = QSqlDatabase::drivers();
     //qDebug() << drivers;
     db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
     db.setDatabaseName("jtgl");
     db.setUserName("root");
-    db.setPassword("840912");
+    db.setPassword("840912");*/
     if(db.open())
     {
         //qDebug() << "succeed！";

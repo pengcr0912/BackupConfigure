@@ -5,7 +5,6 @@
 #include <QMainWindow>
 #include "pixitem.h"
 
-
 class BaseItem;
 class PixItem;
 class QColor;

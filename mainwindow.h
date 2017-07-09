@@ -14,6 +14,7 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include "queryresult.h"
+//#include "deviceinfo.h"
 
 //#pragma execution_character_set("utf-8");
 
@@ -28,6 +29,7 @@ class QToolBox;
 QT_END_NAMESPACE
 class DiagramScene;
 class BaseItem;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -36,11 +38,14 @@ public:
     ~MainWindow();
     QGraphicsView *view;
 
-    QSqlDatabase db;
     QTimer *timer;
     QDateTimeEdit* timeStart;
     QDateTimeEdit* timeEnd;
+    QComboBox* comboBox_style;
     int rowCnt;
+
+//    DeviceInfo* deviceInfo;
+
 protected:
 //    void contextMenuEvent(QContextMenuEvent *event);
 
@@ -66,7 +71,7 @@ private slots:
     void handleFontChange();
 
     void startQuery();
-
+    void styleChanged(const QString& style);
 private slots:
     void fillColorChanged();
     void fillColorButtonTriggered();

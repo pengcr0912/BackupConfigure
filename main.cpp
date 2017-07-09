@@ -1,5 +1,3 @@
-//实现类似visio功能
-
 #include <QApplication>
 #include "mainwindow.h"
 
