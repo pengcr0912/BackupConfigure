@@ -325,7 +325,21 @@ void DeviceInfo::save()
             }
         }
         else
-            qDebug() << "jtgl表不存在";
+            qDebug() << "DeviceParam表不存在";
+
+
+        if(!strTables.contains(mypixItem->deviceCode))
+        {
+            insertline = QString("create table %1 (dateTime VARCHAR(50))").arg(mypixItem->deviceCode);
+            query.exec(insertline);
+        }
+        for(i=0;i<rowCnt;i++)
+        {
+            insertline = QString("alter table %1 add column %2 VARCHAR(100)")
+                    .arg(mypixItem->deviceCode)
+                    .arg(ui->tableWidget->item(i,0)->text());//参数名称中不能有()等字符！！
+            query.exec(insertline);
+        }
     }
     else
         qDebug() << db.lastError();

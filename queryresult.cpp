@@ -20,7 +20,7 @@ QueryResult::~QueryResult()
 
 }
 
-void QueryResult::setTable(QStringList timeList, QStringList typeList, QStringList logList)
+void QueryResult::setLogTable(QStringList& timeList, QStringList& typeList, QStringList& logList)
 {
     int rowCnt = timeList.count();
     QTableWidgetItem* tableItem;
@@ -39,11 +39,9 @@ void QueryResult::setTable(QStringList timeList, QStringList typeList, QStringLi
     tableWidget->horizontalHeader()->setSectionResizeMode(2,QHeaderView::ResizeToContents);
     tableWidget->horizontalHeader()->setStretchLastSection(true);//自动填满控件
 
-    for(int k=0;k<tableWidget->rowCount();k++)
-        tableWidget->setRowHeight(k,20);
-
     for(int i=0;i<rowCnt;i++)
     {
+        tableWidget->setRowHeight(i,20);
         tableWidget->setItem(i,0,new QTableWidgetItem(timeList.at(i)));
         tableWidget->setItem(i,1,new QTableWidgetItem(typeList.at(i)));
         tableWidget->setItem(i,2,new QTableWidgetItem(logList.at(i)));
@@ -63,6 +61,32 @@ void QueryResult::setTable(QStringList timeList, QStringList typeList, QStringLi
                 tableItem->setBackgroundColor(color);
 
         }
+    }
+}
+
+void QueryResult::setParamTable(QStringList& timeList, QStringList selectedList, QStringList& valueList)
+{
+
+    int rowCnt = timeList.count();
+    int columnCnt = selectedList.count() + 1;
+    tableWidget->setColumnCount(columnCnt);
+    tableWidget->setRowCount(rowCnt);
+
+    selectedList.push_front("时间");
+    tableWidget->setHorizontalHeaderLabels(selectedList);
+    tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);//先自适应宽度
+
+    for(int k=0;k<columnCnt;k++)
+        tableWidget->horizontalHeader()->setSectionResizeMode(k,QHeaderView::ResizeToContents);
+
+    tableWidget->horizontalHeader()->setStretchLastSection(true);//自动填满控件
+
+    for(int i=0;i<rowCnt;i++)
+    {
+        tableWidget->setRowHeight(i,20);
+        tableWidget->setItem(i,0,new QTableWidgetItem(timeList.at(i)));
+        for(int j=1;j<columnCnt;j++)
+            tableWidget->setItem(i,j,new QTableWidgetItem(valueList.at(i*(columnCnt-1)+(j-1))));
     }
 }
 

@@ -1172,12 +1172,18 @@ void MainWindow::startQuery()
 {
     if(db.open())
     {
-        //qDebug() << "succeed！";
         QString strTime;
         QString strCode;
         QString strType;
         QString strResult;
+        QStringList timeList;
+        QStringList typeList;
+        QStringList resultList;
+        QStringList columnsList;
+        QStringList selectedColumnList;
+        int columns;
 
+        //qDebug() << "succeed！";
         QSqlQuery query;
         QString insertline;
         QStringList strTables = db.tables();
@@ -1190,6 +1196,24 @@ void MainWindow::startQuery()
             {
                 insertline=QString("select * from DeviceLog where dateTime > '%1' and dateTime < '%2'").arg(strStart).arg(strEnd);
                 query.exec(insertline);//条件查询
+
+                while(query.next())
+                {
+                        strTime = query.value(0).toString();
+                        strCode = query.value(1).toString();
+                        strType = query.value(2).toString();
+                        strResult = query.value(3).toString();
+                        if(strCode == comboBox_code->currentText() && selectedList.contains(strType))
+                        {
+                            timeList.append(strTime);
+                            typeList.append(strType);
+                            resultList.append(strResult);
+                        }
+                }
+
+                QueryResult* resultWindow = new QueryResult(this);
+                resultWindow->setLogTable(timeList, typeList, resultList);//涉及大量copy，后续需改进
+                resultWindow->show();
             }
             else
             {
@@ -1199,38 +1223,60 @@ void MainWindow::startQuery()
         }
         else
         {
-            if(strTables.contains("DeviceValue")) //新建表时需注意，如果表已经存在会报错
+            strCode=comboBox_code->currentText();
+            if(strTables.contains(strCode)) //新建表时需注意，如果表已经存在会报错
             {
-                insertline=QString("select * from DeviceValue where dateTime > '%1' and dateTime < '%2'").arg(strStart).arg(strEnd);
+                /*insertline=QString("select count(*) from information_schema.COLUMNS  where table_schema = 'jtgl' and table_name = '%1'")
+                                  .arg(strCode);
+                query.exec(insertline);//获得表中共有几列
+                query.next();
+                columns = query.value(0).toInt();*/
+
+                insertline=QString("select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='%1'").arg(strCode);
+                query.exec(insertline);//获得表中所有列名
+                while(query.next())
+                {
+                    columnsList.append(query.value(0).toString());
+                }
+
+                for(int i=1; i<columnsList.count(); i++)
+                {
+                    if(selectedList.contains(columnsList.at(i)))
+                    {
+                        selectedColumnList.append(columnsList.at(i));//根据数据库中列顺序将selected重新排列
+                    }
+                }
+
+                insertline=QString("select * from %1 where dateTime > '%2' and dateTime < '%3'")
+                        .arg(strCode)
+                        .arg(strStart)
+                        .arg(strEnd);
                 query.exec(insertline);//条件查询
+
+                while(query.next())
+                {
+                    strTime = query.value(0).toString();
+                    timeList.append(strTime);
+                    for(int i=1; i<columnsList.count(); i++)
+                    {
+                        strResult=query.value(i).toString();
+                        if(selectedList.contains(columnsList.at(i)))
+                        {
+                            resultList.append(strResult);
+                        }
+                    }
+                }
+
+                QueryResult* resultWindow = new QueryResult(this);
+                resultWindow->setParamTable(timeList, selectedColumnList, resultList);//涉及大量copy，后续需改进
+                resultWindow->show();
             }
             else
             {
-                QMessageBox::about(NULL, "warning", "DeviceValue表不存在");
+                QMessageBox::about(NULL, "warning", strCode+"表不存在");
                 return;
             }
         }
-
-        QStringList timeList;
-        QStringList typeList;
-        QStringList resultList;
-        while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
-        {
-                strTime = query.value(0).toString();
-                strCode = query.value(1).toString();
-                strType = query.value(2).toString();
-                strResult = query.value(3).toString();
-                if(strCode == comboBox_code->currentText() && selectedList.contains(strType))
-                {
-                    timeList.append(strTime);
-                    typeList.append(strType);
-                    resultList.append(strResult);
-                }
-        }
-
-        QueryResult* resultWindow = new QueryResult(this);
-        resultWindow->setTable(timeList, typeList, resultList);//涉及大量copy，后续需改进
-        resultWindow->show();
     }
     else
         qDebug() << db.lastError();
@@ -1246,7 +1292,7 @@ void MainWindow::insertLog()
         QSqlQuery query;
         QString insertline;
         QStringList strTables = db.tables();
-        if(strTables.contains("DeviceLog")) //新建表时需注意，如果表已经存在会报错
+/*        if(strTables.contains("DeviceLog")) //新建表时需注意，如果表已经存在会报错
         {
             QDateTime time = QDateTime::currentDateTime(); //获取系统现在的时间
             QString str = time.toString("yyyy-MM-dd hh:mm:ss");//设置系统时间显示格式
@@ -1259,7 +1305,23 @@ void MainWindow::insertLog()
             //qDebug() << flag;
         }
         else
-            QMessageBox::about(NULL, "warning", "DeviceLog表不存在");
+            QMessageBox::about(NULL, "warning", "DeviceLog表不存在");*/
+
+        if(strTables.contains("TCF")) //新建表时需注意，如果表已经存在会报错
+        {
+            QDateTime time = QDateTime::currentDateTime(); //获取系统现在的时间
+            QString str = time.toString("yyyy-MM-dd hh:mm:ss");//设置系统时间显示格式
+            insertline = QString("insert into TCF values('%1','%2','%3','%4')")
+                    .arg(str)
+                    .arg("1")
+                    .arg("2")
+                    .arg("3");
+            bool flag = query.exec(insertline);
+            //qDebug() << flag;
+        }
+        else
+            QMessageBox::about(NULL, "warning", "TCF表不存在");
+
     }
     else
         qDebug() << db.lastError();
