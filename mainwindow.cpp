@@ -14,11 +14,16 @@
 #include <QColorDialog>
 #include <QFontDialog>*/
 
-extern QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+extern QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");//使用全局变量解决多个连接问题，后续考虑改为单例模式
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    db.setHostName("localhost");
+    db.setDatabaseName("jtgl");
+    db.setUserName("root");
+    db.setPassword("840912");
+
     createActions();
     createToolBox();
     createMenus();
@@ -34,10 +39,6 @@ MainWindow::MainWindow(QWidget *parent)
     else
         qDebug() << "open database failed！";
 */
-    db.setHostName("localhost");
-    db.setDatabaseName("jtgl");
-    db.setUserName("root");
-    db.setPassword("840912");
 
     myDiagramScene = new DiagramScene;
     myDiagramScene->setSceneRect(QRect(0, 0, 2000, 1500));
@@ -998,28 +999,161 @@ void MainWindow::createToolBox()
     QPushButton* pushButton_stop = new QPushButton("停止插入日志");
     QLabel* label_start =  new QLabel("起始时间");
     QLabel* label_end =  new QLabel("截止时间");
+    QLabel* label_code =  new QLabel("选择设备");
+    QLabel* label_style =  new QLabel("选择类型");
+
+    selectable = new QTableWidget;
+    selectable->setColumnCount(1);
+    QStringList headers1;
+    headers1 << "可选参数";
+    selectable->setHorizontalHeaderLabels(headers1);
+    selectable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    QHeaderView* headerView1 = selectable->verticalHeader();
+    headerView1->setHidden(true);
+    selectable->horizontalHeader()->setStretchLastSection(true);
+
+    selected = new QTableWidget;
+    selected->setColumnCount(1);
+    QStringList headers2;
+    headers2 << "已选参数";
+    selected->setHorizontalHeaderLabels(headers2);
+    selected->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    QHeaderView* headerView2 = selected->verticalHeader();
+    headerView2->setHidden(true);
+    selected->horizontalHeader()->setStretchLastSection(true);
+
     comboBox_style = new QComboBox;
     comboBox_style->addItem("日志");
     comboBox_style->addItem("参数");
+    comboBox_code = new QComboBox;
+    if(db.open())
+    {
+        QSqlQuery query;
+        QString strCode, strParam;
+        QStringList strTables = db.tables();
 
+        codeList.clear();
+        paramList.clear();
+        if(strTables.contains("DeviceParam")) //新建表时需注意，如果表已经存在会报错
+        {
+            //insertline=QString("select deviceCode from DeviceParam");
+            query.exec("select * from DeviceParam");
+            while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
+            {
+                strCode = query.value(1).toString();
+                if(!codeList.contains(strCode))
+                {
+                    codeList.append(strCode);
+                    comboBox_code->addItem(strCode);
+                }
+                strParam = query.value(2).toString();
+                multiMap.insert(strCode,strParam);
+            }
+        }
+        else
+            qDebug() << "jtgl表不存在";
+    }
+    else
+        qDebug() << db.lastError();
+
+    if(comboBox_style->currentText()=="参数")
+    {
+        paramList = multiMap.values(comboBox_code->currentText());
+        selectable->setRowCount(paramList.count());
+        for(int i=0; i<paramList.count();i++)
+        {
+            selectable->setItem(i,0,new QTableWidgetItem(paramList.at(i)));
+            selectable->setRowHeight(i, 20);
+        }
+    }
+    else
+    {
+        selectable->setRowCount(3);
+        selectable->setItem(0,0,new QTableWidgetItem("信息"));
+        selectable->setRowHeight(0, 20);
+        selectable->setItem(1,0,new QTableWidgetItem("报警"));
+        selectable->setRowHeight(1, 20);
+        selectable->setItem(2,0,new QTableWidgetItem("错误"));
+        selectable->setRowHeight(2, 20);
+    }
+
+/*    QHBoxLayout* layout1 = new QHBoxLayout;
+    layout1->addStretch();
+    layout1->addWidget(label_start);
+    layout1->addStretch();
+    layout1->addWidget(timeStart);
+    layout1->addStretch();
+
+    QHBoxLayout* layout2 = new QHBoxLayout;
+    layout2->addStretch();
+    layout2->addWidget(label_end);
+    layout2->addStretch();
+    layout2->addWidget(timeEnd);
+    layout2->addStretch();
+
+    QHBoxLayout* layout3 = new QHBoxLayout;
+    layout3->addStretch();
+    layout3->addWidget(label_code);
+    layout3->addStretch();
+    layout3->addWidget(comboBox_code);
+    layout3->addStretch();
+
+    QHBoxLayout* layout4 = new QHBoxLayout;
+    layout4->addStretch();
+    layout4->addWidget(label_style);
+    layout4->addStretch();
+    layout4->addWidget(comboBox_style);
+    layout4->addStretch();
+*/
     sqlLayout->addWidget(label_start, 0, 0);
     sqlLayout->addWidget(label_end, 1, 0);
     sqlLayout->addWidget(timeStart, 0, 1);
     sqlLayout->addWidget(timeEnd, 1, 1);
-    sqlLayout->addWidget(pushButton_query, 2, 1);
-    sqlLayout->addWidget(pushButton_start, 3, 1);
-    sqlLayout->addWidget(pushButton_stop, 4, 1);
-    sqlLayout->addWidget(comboBox_style, 5, 1);
+    sqlLayout->addWidget(label_code, 2, 0);
+    sqlLayout->addWidget(label_style, 3, 0);
+    sqlLayout->addWidget(comboBox_code, 2, 1);
+    sqlLayout->addWidget(comboBox_style, 3, 1);
+
+    QHBoxLayout* layoutH = new QHBoxLayout;
+    layoutH->addStretch();
+    layoutH->addWidget(selectable);
+    layoutH->addStretch();
+    layoutH->addWidget(selected);
+    layoutH->addStretch();
+
+    QVBoxLayout* layoutV = new QVBoxLayout;
+/*    layoutV->addLayout(layout1);
+    layoutV->addLayout(layout2);
+    layoutV->addLayout(layout3);
+    layoutV->addLayout(layout4);*/
+    layoutV->addLayout(sqlLayout);
+    layoutV->addLayout(layoutH);
+    layoutV->addWidget(pushButton_query);
+    layoutV->addWidget(pushButton_start);
+    layoutV->addWidget(pushButton_stop);
+    sqlWidget->setLayout(layoutV);
+/*    sqlLayout->addWidget(pushButton_query, 4, 1);
+    sqlLayout->addWidget(selectable, 5, 0);
+    sqlLayout->addWidget(selected, 5, 1);
+    sqlLayout->addWidget(pushButton_start, 6, 1);
+    sqlLayout->addWidget(pushButton_stop, 7, 1);
     sqlLayout->setRowStretch(10, 10);
     sqlLayout->setColumnStretch(10, 10);
     //sqlLayout->setMargin(0);
     //sqlLayout->setSpacing(0);
-    sqlWidget->setLayout(sqlLayout);
+    sqlWidget->setLayout(sqlLayout);*/
     connect(pushButton_query,SIGNAL(clicked()),this,SLOT(startQuery()));
     connect(pushButton_start,SIGNAL(clicked()),this,SLOT(startInsert()));
     connect(pushButton_stop,SIGNAL(clicked()),this,SLOT(stopInsert()));
     connect(comboBox_style, SIGNAL(currentIndexChanged(QString)),
             this, SLOT(styleChanged(QString)));
+    connect(comboBox_code, SIGNAL(currentIndexChanged(QString)),
+            this, SLOT(codeChanged(QString)));
+    connect(selectable,SIGNAL(cellDoubleClicked(int,int)),this,SLOT(addParam(int,int)));
+    connect(selected,SIGNAL(cellDoubleClicked(int,int)),this,SLOT(deleteParam(int,int)));
+
+
+
     QWidget *paramWidget = new QWidget;
 
 
@@ -1036,59 +1170,67 @@ void MainWindow::createToolBox()
 
 void MainWindow::startQuery()
 {
-/*    QSqlDatabase db;
-    //QStringList drivers = QSqlDatabase::drivers();
-    //qDebug() << drivers;
-    db = QSqlDatabase::addDatabase("QMYSQL");
-    db.setHostName("localhost");
-    db.setDatabaseName("jtgl");
-    db.setUserName("root");
-    db.setPassword("840912");*/
-
     if(db.open())
     {
         //qDebug() << "succeed！";
-        QString m_content;
+        QString strTime;
+        QString strCode;
+        QString strType;
+        QString strResult;
+
         QSqlQuery query;
         QString insertline;
         QStringList strTables = db.tables();
-        if(strTables.contains("DeviceLog")) //新建表时需注意，如果表已经存在会报错
+        QString strStart = timeStart->dateTime().toString("yyyy-MM-dd hh:mm:ss");
+        QString strEnd = timeEnd->dateTime().toString("yyyy-MM-dd hh:mm:ss");
+
+        if(comboBox_style->currentText() == "日志")
         {
-            query.exec("select count(*) from information_schema.COLUMNS  where table_schema = 'jtgl' and table_name = 'DeviceLog'");//获得表中共有几列
-            query.next();
-            int columns = query.value(0).toInt();
-
-            //query.exec("select * from DeviceLog");
-            QString strStart = timeStart->dateTime().toString("yyyy-MM-dd hh:mm:ss");
-            QString strEnd = timeEnd->dateTime().toString("yyyy-MM-dd hh:mm:ss");
-            insertline=QString("select * from DeviceLog where dateTime > '%1' and dateTime < '%2'").arg(strStart).arg(strEnd);
-            query.exec(insertline);//条件查询
-
-            QStringList timeList;
-            QStringList logList;
-            while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
+            if(strTables.contains("DeviceLog")) //新建表时需注意，如果表已经存在会报错
             {
-                for(int i=0;i<columns;i++)
-                {
-                    m_content = query.value(i).toString();
-                    if(i==0)
-                    {
-                        timeList.append(m_content);
-                    }
-                    else if(i==3)
-                    {
-                        logList.append(m_content);
-                    }
-                    //qDebug() << m_content;
-                }
+                insertline=QString("select * from DeviceLog where dateTime > '%1' and dateTime < '%2'").arg(strStart).arg(strEnd);
+                query.exec(insertline);//条件查询
             }
-
-            QueryResult* resultWindow = new QueryResult(this);
-            resultWindow->setTable(timeList, logList);//涉及大量copy，后续需改进
-            resultWindow->show();
+            else
+            {
+                QMessageBox::about(NULL, "warning", "DeviceLog表不存在");
+                return;
+            }
         }
         else
-            qDebug() << "jtgl表不存在";
+        {
+            if(strTables.contains("DeviceValue")) //新建表时需注意，如果表已经存在会报错
+            {
+                insertline=QString("select * from DeviceValue where dateTime > '%1' and dateTime < '%2'").arg(strStart).arg(strEnd);
+                query.exec(insertline);//条件查询
+            }
+            else
+            {
+                QMessageBox::about(NULL, "warning", "DeviceValue表不存在");
+                return;
+            }
+        }
+
+        QStringList timeList;
+        QStringList typeList;
+        QStringList resultList;
+        while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
+        {
+                strTime = query.value(0).toString();
+                strCode = query.value(1).toString();
+                strType = query.value(2).toString();
+                strResult = query.value(3).toString();
+                if(strCode == comboBox_code->currentText() && selectedList.contains(strType))
+                {
+                    timeList.append(strTime);
+                    typeList.append(strType);
+                    resultList.append(strResult);
+                }
+        }
+
+        QueryResult* resultWindow = new QueryResult(this);
+        resultWindow->setTable(timeList, typeList, resultList);//涉及大量copy，后续需改进
+        resultWindow->show();
     }
     else
         qDebug() << db.lastError();
@@ -1096,13 +1238,6 @@ void MainWindow::startQuery()
 
 void MainWindow::insertLog()
 {
-/*    //QStringList drivers = QSqlDatabase::drivers();
-    //qDebug() << drivers;
-    db = QSqlDatabase::addDatabase("QMYSQL");
-    db.setHostName("localhost");
-    db.setDatabaseName("jtgl");
-    db.setUserName("root");
-    db.setPassword("840912");*/
     if(db.open())
     {
         //qDebug() << "succeed！";
@@ -1117,14 +1252,14 @@ void MainWindow::insertLog()
             QString str = time.toString("yyyy-MM-dd hh:mm:ss");//设置系统时间显示格式
             insertline = QString("insert into DeviceLog values('%1','%2','%3','%4')")
                     .arg(str)
-                    .arg("XXX")
-                    .arg("0")
-                    .arg("XXXXXXXXXXXXXXXXXXXXXXXXXXXX插入一条日志");
+                    .arg("CRT")
+                    .arg("报警")
+                    .arg("插入一条报警日志");
             bool flag = query.exec(insertline);
             //qDebug() << flag;
         }
         else
-            qDebug() << "jtgl表不存在";
+            QMessageBox::about(NULL, "warning", "DeviceLog表不存在");
     }
     else
         qDebug() << db.lastError();
@@ -1142,5 +1277,81 @@ void MainWindow::stopInsert()
 
 void MainWindow::styleChanged(const QString& style)
 {
-    qDebug() << style;
+    rowCnt=0;
+    selectedList.clear();
+    selected->setRowCount(0);
+    if(style=="参数")
+    {
+        paramList.clear();
+        //selectable->clearContents();
+        paramList = multiMap.values(comboBox_code->currentText());
+        selectable->setRowCount(paramList.count());
+        for(int i=0; i<paramList.count();i++)
+        {
+            selectable->setItem(i,0,new QTableWidgetItem(paramList.at(i)));
+            selectable->setRowHeight(i, 20);
+        }
+    }
+    else
+    {
+        selectable->setRowCount(3);
+        selectable->setItem(0,0,new QTableWidgetItem("信息"));
+        selectable->setRowHeight(0, 20);
+        selectable->setItem(1,0,new QTableWidgetItem("报警"));
+        selectable->setRowHeight(1, 20);
+        selectable->setItem(2,0,new QTableWidgetItem("错误"));
+        selectable->setRowHeight(2, 20);
+    }
+}
+
+void MainWindow::codeChanged(const QString& code)
+{
+    rowCnt=0;
+    selectedList.clear();
+    selected->setRowCount(0);
+    if(comboBox_style->currentText()=="参数")
+    {
+        paramList.clear();
+        //selectable->clearContents();
+        paramList = multiMap.values(code);
+        selectable->setRowCount(paramList.count());
+        for(int i=0; i<paramList.count();i++)
+        {
+            selectable->setItem(i,0,new QTableWidgetItem(paramList.at(i)));
+            selectable->setRowHeight(i, 20);
+        }
+    }
+    else
+    {
+        selectable->setRowCount(3);
+        selectable->setItem(0,0,new QTableWidgetItem("信息"));
+        selectable->setRowHeight(0, 20);
+        selectable->setItem(1,0,new QTableWidgetItem("报警"));
+        selectable->setRowHeight(1, 20);
+        selectable->setItem(2,0,new QTableWidgetItem("错误"));
+        selectable->setRowHeight(2, 20);
+    }
+}
+
+void MainWindow::addParam(int i, int j)
+{
+    QString str = selectable->item(i,j)->text();
+    if(!selectedList.contains(str))
+    {
+        selected->setRowCount(rowCnt+1);
+        selected->setItem(rowCnt, 0, new QTableWidgetItem(str));
+        selected->setRowHeight(rowCnt, 20);
+        selectedList.append(str);
+        rowCnt++;
+    }
+    else
+        QMessageBox::about(NULL, "warning", "该参数已在列表中");
+}
+
+void MainWindow::deleteParam(int i, int j)
+{
+     QString str = selected->item(i,j)->text();
+     selected->removeRow(i);
+     selectedList.removeAll(str);
+     rowCnt--;
 }

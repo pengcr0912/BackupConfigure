@@ -42,7 +42,14 @@ public:
     QDateTimeEdit* timeStart;
     QDateTimeEdit* timeEnd;
     QComboBox* comboBox_style;
+    QComboBox* comboBox_code;
+    QTableWidget* selectable;
+    QTableWidget* selected;
+    QStringList codeList;
+    QStringList paramList;
+    QMultiMap<QString, QString> multiMap;
     int rowCnt;
+    QStringList selectedList;
 
 //    DeviceInfo* deviceInfo;
 
@@ -72,6 +79,9 @@ private slots:
 
     void startQuery();
     void styleChanged(const QString& style);
+    void codeChanged(const QString& code);
+    void addParam(int i, int j);
+    void deleteParam(int i, int j);
 private slots:
     void fillColorChanged();
     void fillColorButtonTriggered();

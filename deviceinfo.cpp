@@ -229,15 +229,6 @@ void DeviceInfo::addParam()
 
 void DeviceInfo::setDevice()
 {
-/*    QSqlDatabase db;
-    //QStringList drivers = QSqlDatabase::drivers();
-    //qDebug() << drivers;
-    db = QSqlDatabase::addDatabase("QMYSQL");
-    db.setHostName("localhost");
-    db.setDatabaseName("jtgl");
-    db.setUserName("root");
-    db.setPassword("840912");*/
-
     if(db.open())
     {
         //qDebug() << "succeed！";
@@ -308,14 +299,6 @@ void DeviceInfo::save()
         mypixItem->deviceParamList.append(myParam);
     }
 
-/*    QSqlDatabase db;
-    //QStringList drivers = QSqlDatabase::drivers();
-    //qDebug() << drivers;
-    db = QSqlDatabase::addDatabase("QMYSQL");
-    db.setHostName("localhost");
-    db.setDatabaseName("jtgl");
-    db.setUserName("root");
-    db.setPassword("840912");*/
     if(db.open())
     {
         //qDebug() << "succeed！";

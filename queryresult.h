@@ -14,7 +14,7 @@ public:
 
     QTableWidget* tableWidget;
 
-    void setTable(QStringList timeList, QStringList logList);
+    void setTable(QStringList timeList, QStringList typeList, QStringList logList);
 
     virtual void resizeEvent(QResizeEvent *event);
 
