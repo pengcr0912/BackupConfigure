@@ -67,7 +67,6 @@ void QueryResult::setLogTable(QStringList& timeList, QStringList& typeList, QStr
 
 void QueryResult::setParamTable(QStringList& timeList, QStringList selectedList, QStringList& valueList)
 {
-    ydList.clear();
     tableColumnList = selectedList;
     int rowCnt = timeList.count();
     int columnCnt = selectedList.count() + 1;
@@ -90,7 +89,6 @@ void QueryResult::setParamTable(QStringList& timeList, QStringList selectedList,
         {
             strValue = valueList.at(i*(columnCnt-1)+(j-1));
             tableWidget->setItem(i,j,new QTableWidgetItem(strValue));
-            ydList.append(strValue.toDouble());
         }
     }
 
@@ -106,11 +104,16 @@ void QueryResult::onHeaderClicked(int i)
 {
     if(i!=0)
     {
+        ydList.clear();
+        for(int j=0;j<tableWidget->rowCount();j++)
+        {
+            ydList.append(tableWidget->item(j,i)->text().toDouble());
+        }
         CustomPlotWindow* cp = new CustomPlotWindow;
         Qt::WindowFlags flags = 0;
         flags |= Qt::WindowMinimizeButtonHint;
         //cp->setWindowFlags(flags); // 设置禁止最大化
-        cp->drawCurve(tableColumnList.at(i-1), ydList);
+        cp->drawCurve(tableColumnList.at(i-1), &ydList);
         cp->show();
         //QMessageBox::about(NULL, "warning", "绘制曲线");
     }

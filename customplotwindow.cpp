@@ -79,16 +79,24 @@ void CustomPlotWindow::setupDemo(int demoIndex)
   ui->customPlot->replot();
 }
 
-void CustomPlotWindow::drawCurve(QString name, QList<double> value)
+void CustomPlotWindow::drawCurve(QString name, QList<double>* value)
 {
-  int cnt= value.count();
+  int cnt= value->count();
+  double max = value->at(0);
+  double min = value->at(0);
+  //double temp;
   // generate some data:
   QVector<double> x(cnt), y(cnt); // initialize with entries 0..100
   for (int i=0; i<cnt; ++i)
   {
     x[i] = i; // x goes from -1 to 1
-    y[i] = value.at(i);  // let's plot a quadratic function
+    y[i] = value->at(i);  // let's plot a quadratic function
+    if(y[i] > max)
+        max=y[i];
+    if(y[i] < min)
+        min=y[i];
   }
+
   // create graph and assign data to it:
   ui->customPlot->addGraph();
   ui->customPlot->graph(0)->setData(x, y);
@@ -97,12 +105,30 @@ void CustomPlotWindow::drawCurve(QString name, QList<double> value)
   ui->customPlot->yAxis->setLabel("y");
   // set axes ranges, so we see all data:
   ui->customPlot->xAxis->setRange(0, cnt);
-  ui->customPlot->yAxis->setRange(0, 5);//设为最大值和最小值
+  ui->customPlot->yAxis->setRange(min-(max-min)*0.1, max+(max-min)*0.1);//设为最大值和最小值
 
   setWindowTitle(name);
   statusBar()->clearMessage();
   //currentDemoIndex = demoIndex;
   ui->customPlot->replot();
+
+  connect(ui->customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(myMouseMove(QMouseEvent*)));
+}
+
+void CustomPlotWindow::myMouseMove(QMouseEvent* e)
+{
+    //获取鼠标坐标点
+    int x_pos = e->pos().x();
+    int y_pos = e->pos().y();
+
+    // 把鼠标坐标点 转换为 QCustomPlot 内部坐标值
+    // coordToPixel 函数与之相反 是把内部坐标值 转换为外部坐标点
+    float x_val = ui->customPlot->xAxis->pixelToCoord(x_pos);
+    float y_val = ui->customPlot->yAxis->pixelToCoord(y_pos);
+
+    QString hint;
+    hint = QString("( x = %1   y = %2 )").arg(x_val).arg(y_val);
+    ui->customPlot->setToolTip(hint);
 }
 
 void CustomPlotWindow::setupQuadraticDemo(QCustomPlot *customPlot)

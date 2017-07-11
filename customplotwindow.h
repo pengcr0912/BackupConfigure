@@ -41,13 +41,14 @@ public:
 
     void setupPlayground(QCustomPlot *customPlot);
 
-    void drawCurve(QString name, QList<double> value);
+    void drawCurve(QString name, QList<double>* value);
 
 private slots:
     void realtimeDataSlot();
     void bracketDataSlot();
     void screenShot();
     void allScreenShots();
+    void myMouseMove(QMouseEvent* e);
 
 private:
     Ui::CustomPlotWindow *ui;

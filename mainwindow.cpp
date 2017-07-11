@@ -1317,46 +1317,44 @@ void MainWindow::insertLog()
         else
             QMessageBox::about(NULL, "warning", "DeviceLog表不存在");*/
 
-        if(strTables.contains("TCF")) //新建表时需注意，如果表已经存在会报错
+        if(strTables.contains("TCF"))
         {
             columnList.clear();
             insertline=QString("select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='%1'").arg("TCF");
-            query.exec(insertline);//获得表中所有列名
+            query.exec(insertline);
             while(query.next())
-            {
                 columnList.append(query.value(0).toString());
-            }
 
             paramList.clear();
+            paramList = multiMap.values("TCF");
             QString str;
             QStringList inputList;
             inputList << "1" << "2" << "3";
             QStringList valueList;
-            paramList = multiMap.values("TCF");
-            QMap<QString, QString> indata;
-            indata.insert(paramList.at(0),inputList.at(0));
-            indata.insert(paramList.at(1),inputList.at(1));
-            indata.insert(paramList.at(2),inputList.at(2));
-
-            QDateTime time = QDateTime::currentDateTime(); //获取系统现在的时间
-            QString strTime = time.toString("yyyy-MM-dd hh:mm:ss");//设置系统时间显示格式
+            QMap<QString, QString> inputMap;
+            inputMap.insert(paramList.at(0),inputList.at(0));
+            inputMap.insert(paramList.at(1),inputList.at(1));
+            inputMap.insert(paramList.at(2),inputList.at(2));
+            QDateTime time = QDateTime::currentDateTime();
+            QString strTime = time.toString("yyyy-MM-dd hh:mm:ss");
             str="insert into TCF values('"+strTime+"','";
             int cnt = columnList.count();
             for(int i=0; i<cnt-2; i++)
             {
                 if(paramList.contains(columnList.at(i+1)))
-                    valueList.append(indata.value(columnList.at(i+1)));
+                    valueList.append(inputMap.value(columnList.at(i+1)));
                 else
                     valueList.append("");
 
                 str=str+valueList.at(i)+"','";
             }
             if(paramList.contains(columnList.at(cnt-1)))
-                valueList.append(indata.value(columnList.at(cnt-1)));
+                valueList.append(inputMap.value(columnList.at(cnt-1)));
             else
                 valueList.append("");
 
             str=str+valueList.at(cnt-2)+"')";
+            query.exec(str);
 /*
             insertline = QString("insert into TCF values('%1','%2','%3','%4','%5','%6')")
                     .arg(strTime)
@@ -1366,7 +1364,6 @@ void MainWindow::insertLog()
                     .arg("")
                     .arg("");
             bool flag = query.exec(insertline);//values中应包括数据库表中所有列的值，而不只是当前paramList中的值*/
-            query.exec(str);
             //qDebug() << flag;
         }
         else
