@@ -144,8 +144,9 @@ DeviceInfo::DeviceInfo(PixItem *pixItem, QWidget *parent) :
     //    connect(ui->tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(statusConfirm(int,int)));
 
     connect(ui->pushButton_save,SIGNAL(clicked()),this,SLOT(save()));
-    connect(ui->pushButton_delete,SIGNAL(clicked()),this,SLOT(deleteParam()));
     connect(ui->pushButton_add,SIGNAL(clicked()),this,SLOT(addParam()));
+
+    connect(ui->tableWidget->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(onHeaderClicked(int)));
 }
 
 
@@ -156,13 +157,15 @@ DeviceInfo::~DeviceInfo()
 
 void DeviceInfo::plotSlot(int i, int j)
 {
-    /*    CustomPlotWindow* cp = new CustomPlotWindow;
-
-    Qt::WindowFlags flags = 0;
-    flags |= Qt::WindowMinimizeButtonHint;
-    cp->setWindowFlags(flags); // 设置禁止最大化
-
-    cp->show();*/
+    if(j==3)
+    {
+        CustomPlotWindow* cp = new CustomPlotWindow;
+        Qt::WindowFlags flags = 0;
+        flags |= Qt::WindowMinimizeButtonHint;
+        cp->setWindowFlags(flags); // 设置禁止最大化
+        cp->setupDemo(10);
+        cp->show();
+    }
 }
 
 void DeviceInfo::statusConfirm(int i, int j)
@@ -173,19 +176,6 @@ void DeviceInfo::statusConfirm(int i, int j)
         const QColor color = QColor(255,255,255);
         tableItem->setBackgroundColor(color);
     }
-}
-
-
-void DeviceInfo::deleteParam()
-{
-    int i = ui->lineEdit_num->text().toInt();
-    if(i > 0 && i <= ui->tableWidget->rowCount())
-    {
-        ui->tableWidget->removeRow(i-1);
-        myRowCnt--;
-    }
-    else
-        QMessageBox::about(NULL, "warning", "请输入合适的行号");
 }
 
 void DeviceInfo::setCode(QString code)
@@ -204,6 +194,7 @@ void DeviceInfo::setTable(QList<DeviceParam> paramList)
     ui->tableWidget->setRowCount(myRowCnt);
     for(int i=0; i<myRowCnt; i++)
     {
+        ui->tableWidget->setRowHeight(i, 20);
         ui->tableWidget->setItem(i, 0, new QTableWidgetItem(paramList.at(i).paramName));
         ui->tableWidget->setItem(i, 1, new QTableWidgetItem(paramList.at(i).paramMin));
         ui->tableWidget->setItem(i, 2, new QTableWidgetItem(paramList.at(i).paramMax));
@@ -216,6 +207,7 @@ void DeviceInfo::addParam()
 {
     myRowCnt++;
     ui->tableWidget->setRowCount(myRowCnt);
+    ui->tableWidget->setRowHeight(myRowCnt-1, 20);
     //    ui->tableWidget->setEditTriggers ( QAbstractItemView::NoEditTriggers );//整个table不可编辑
 
     tableItem = ui->tableWidget->item(myRowCnt-1,3);
@@ -262,6 +254,12 @@ void DeviceInfo::setDevice()
     else
         qDebug() << db.lastError();
 
+}
+
+void DeviceInfo::onHeaderClicked(int i)
+{
+    ui->tableWidget->removeRow(i);
+    myRowCnt--;
 }
 
 void DeviceInfo::save()

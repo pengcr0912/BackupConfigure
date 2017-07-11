@@ -1,6 +1,8 @@
 #include "queryresult.h"
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QMessageBox>
+#include "customplotwindow.h"
 
 QueryResult::QueryResult(QWidget *parent) :
     QMainWindow(parent)
@@ -59,26 +61,25 @@ void QueryResult::setLogTable(QStringList& timeList, QStringList& typeList, QStr
             tableItem = tableWidget->item(i,j);
             if (tableItem)//对内容为空到item设置颜色会导致程序崩溃，因此需判断
                 tableItem->setBackgroundColor(color);
-
         }
     }
 }
 
 void QueryResult::setParamTable(QStringList& timeList, QStringList selectedList, QStringList& valueList)
 {
-
+    ydList.clear();
+    tableColumnList = selectedList;
     int rowCnt = timeList.count();
     int columnCnt = selectedList.count() + 1;
+    QString strValue;
     tableWidget->setColumnCount(columnCnt);
     tableWidget->setRowCount(rowCnt);
 
     selectedList.push_front("时间");
     tableWidget->setHorizontalHeaderLabels(selectedList);
     tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);//先自适应宽度
-
     for(int k=0;k<columnCnt;k++)
         tableWidget->horizontalHeader()->setSectionResizeMode(k,QHeaderView::ResizeToContents);
-
     tableWidget->horizontalHeader()->setStretchLastSection(true);//自动填满控件
 
     for(int i=0;i<rowCnt;i++)
@@ -86,11 +87,31 @@ void QueryResult::setParamTable(QStringList& timeList, QStringList selectedList,
         tableWidget->setRowHeight(i,20);
         tableWidget->setItem(i,0,new QTableWidgetItem(timeList.at(i)));
         for(int j=1;j<columnCnt;j++)
-            tableWidget->setItem(i,j,new QTableWidgetItem(valueList.at(i*(columnCnt-1)+(j-1))));
+        {
+            strValue = valueList.at(i*(columnCnt-1)+(j-1));
+            tableWidget->setItem(i,j,new QTableWidgetItem(strValue));
+            ydList.append(strValue.toDouble());
+        }
     }
+
+    connect(tableWidget->horizontalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(onHeaderClicked(int)));
 }
 
 void QueryResult::resizeEvent(QResizeEvent *event)
 {
 
+}
+
+void QueryResult::onHeaderClicked(int i)
+{
+    if(i!=0)
+    {
+        CustomPlotWindow* cp = new CustomPlotWindow;
+        Qt::WindowFlags flags = 0;
+        flags |= Qt::WindowMinimizeButtonHint;
+        //cp->setWindowFlags(flags); // 设置禁止最大化
+        cp->drawCurve(tableColumnList.at(i-1), ydList);
+        cp->show();
+        //QMessageBox::about(NULL, "warning", "绘制曲线");
+    }
 }

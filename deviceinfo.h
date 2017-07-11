@@ -45,10 +45,10 @@ private:
 
 private slots:
     void plotSlot(int i,int j);
-    void deleteParam();
     void addParam();
     void save();
     void statusConfirm(int i,int j);
+    void onHeaderClicked(int i);
 
 };
 

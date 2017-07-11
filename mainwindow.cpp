@@ -995,8 +995,8 @@ void MainWindow::createToolBox()
     timeStart = new QDateTimeEdit(QDateTime::currentDateTime());
     timeEnd = new QDateTimeEdit(QDateTime::currentDateTime());
     QPushButton* pushButton_query = new QPushButton("查询");
-    QPushButton* pushButton_start = new QPushButton("开始插入日志");
-    QPushButton* pushButton_stop = new QPushButton("停止插入日志");
+    QPushButton* pushButton_start = new QPushButton("开始插入");
+    QPushButton* pushButton_stop = new QPushButton("停止插入");
     QLabel* label_start =  new QLabel("起始时间");
     QLabel* label_end =  new QLabel("截止时间");
     QLabel* label_code =  new QLabel("选择设备");
@@ -1034,6 +1034,7 @@ void MainWindow::createToolBox()
 
         codeList.clear();
         paramList.clear();
+
         if(strTables.contains("DeviceParam")) //新建表时需注意，如果表已经存在会报错
         {
             //insertline=QString("select deviceCode from DeviceParam");
@@ -1047,24 +1048,40 @@ void MainWindow::createToolBox()
                     comboBox_code->addItem(strCode);
                 }
                 strParam = query.value(2).toString();
-                multiMap.insert(strCode,strParam);
+                multiMap.insert(strCode,strParam);//获取设备代号和监视参数的键值对
             }
         }
         else
-            qDebug() << "jtgl表不存在";
+            qDebug() << "DeviceParam表不存在";
+
+/*        if(strTables.contains(comboBox_code->currentText())) //新建表时需注意，如果表已经存在会报错
+        {
+            columnList.clear();
+            QString insertline=QString("select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='%1'").arg(comboBox_code->currentText());
+            query.exec(insertline);//获得表中所有列名
+            while(query.next())
+            {
+                columnList.append(query.value(0).toString());
+            }
+            //columnList.pop_front();//将时间列删除
+        }
+        else
+            qDebug() << comboBox_code->currentText()+"表不存在";*/
     }
     else
         qDebug() << db.lastError();
 
     if(comboBox_style->currentText()=="参数")
     {
-        paramList = multiMap.values(comboBox_code->currentText());
-        selectable->setRowCount(paramList.count());
-        for(int i=0; i<paramList.count();i++)
+/*        paramList = multiMap.values(comboBox_code->currentText());
+
+        selectable->setRowCount(columnList.count()-1);
+        selectable->setRowHeight(0, 20);
+        for(int i=1; i<columnList.count();i++)
         {
-            selectable->setItem(i,0,new QTableWidgetItem(paramList.at(i)));
-            selectable->setRowHeight(i, 20);
-        }
+            selectable->setItem(i-1,0,new QTableWidgetItem(columnList.at(i)));
+            selectable->setRowHeight(i-1, 20);
+        }*/
     }
     else
     {
@@ -1179,7 +1196,7 @@ void MainWindow::startQuery()
         QStringList timeList;
         QStringList typeList;
         QStringList resultList;
-        QStringList columnsList;
+
         QStringList selectedColumnList;
         int columns;
 
@@ -1232,18 +1249,11 @@ void MainWindow::startQuery()
                 query.next();
                 columns = query.value(0).toInt();*/
 
-                insertline=QString("select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='%1'").arg(strCode);
-                query.exec(insertline);//获得表中所有列名
-                while(query.next())
+                for(int i=1; i<columnList.count(); i++)
                 {
-                    columnsList.append(query.value(0).toString());
-                }
-
-                for(int i=1; i<columnsList.count(); i++)
-                {
-                    if(selectedList.contains(columnsList.at(i)))
+                    if(selectedList.contains(columnList.at(i)))
                     {
-                        selectedColumnList.append(columnsList.at(i));//根据数据库中列顺序将selected重新排列
+                        selectedColumnList.append(columnList.at(i));//根据数据库中列顺序将selected重新排列
                     }
                 }
 
@@ -1257,10 +1267,10 @@ void MainWindow::startQuery()
                 {
                     strTime = query.value(0).toString();
                     timeList.append(strTime);
-                    for(int i=1; i<columnsList.count(); i++)
+                    for(int i=1; i<columnList.count(); i++)
                     {
                         strResult=query.value(i).toString();
-                        if(selectedList.contains(columnsList.at(i)))
+                        if(selectedList.contains(columnList.at(i)))
                         {
                             resultList.append(strResult);
                         }
@@ -1309,14 +1319,54 @@ void MainWindow::insertLog()
 
         if(strTables.contains("TCF")) //新建表时需注意，如果表已经存在会报错
         {
+            columnList.clear();
+            insertline=QString("select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='%1'").arg("TCF");
+            query.exec(insertline);//获得表中所有列名
+            while(query.next())
+            {
+                columnList.append(query.value(0).toString());
+            }
+
+            paramList.clear();
+            QString str;
+            QStringList inputList;
+            inputList << "1" << "2" << "3";
+            QStringList valueList;
+            paramList = multiMap.values("TCF");
+            QMap<QString, QString> indata;
+            indata.insert(paramList.at(0),inputList.at(0));
+            indata.insert(paramList.at(1),inputList.at(1));
+            indata.insert(paramList.at(2),inputList.at(2));
+
             QDateTime time = QDateTime::currentDateTime(); //获取系统现在的时间
-            QString str = time.toString("yyyy-MM-dd hh:mm:ss");//设置系统时间显示格式
-            insertline = QString("insert into TCF values('%1','%2','%3','%4')")
-                    .arg(str)
+            QString strTime = time.toString("yyyy-MM-dd hh:mm:ss");//设置系统时间显示格式
+            str="insert into TCF values('"+strTime+"','";
+            int cnt = columnList.count();
+            for(int i=0; i<cnt-2; i++)
+            {
+                if(paramList.contains(columnList.at(i+1)))
+                    valueList.append(indata.value(columnList.at(i+1)));
+                else
+                    valueList.append("");
+
+                str=str+valueList.at(i)+"','";
+            }
+            if(paramList.contains(columnList.at(cnt-1)))
+                valueList.append(indata.value(columnList.at(cnt-1)));
+            else
+                valueList.append("");
+
+            str=str+valueList.at(cnt-2)+"')";
+/*
+            insertline = QString("insert into TCF values('%1','%2','%3','%4','%5','%6')")
+                    .arg(strTime)
                     .arg("1")
                     .arg("2")
-                    .arg("3");
-            bool flag = query.exec(insertline);
+                    .arg("3")
+                    .arg("")
+                    .arg("");
+            bool flag = query.exec(insertline);//values中应包括数据库表中所有列的值，而不只是当前paramList中的值*/
+            query.exec(str);
             //qDebug() << flag;
         }
         else
@@ -1344,7 +1394,7 @@ void MainWindow::styleChanged(const QString& style)
     selected->setRowCount(0);
     if(style=="参数")
     {
-        paramList.clear();
+/*        paramList.clear();
         //selectable->clearContents();
         paramList = multiMap.values(comboBox_code->currentText());
         selectable->setRowCount(paramList.count());
@@ -1352,7 +1402,37 @@ void MainWindow::styleChanged(const QString& style)
         {
             selectable->setItem(i,0,new QTableWidgetItem(paramList.at(i)));
             selectable->setRowHeight(i, 20);
+        }*/
+        if(db.open())
+        {
+            QSqlQuery query;
+            QString insertline;
+            QStringList strTables = db.tables();
+
+            if(strTables.contains(comboBox_code->currentText())) //新建表时需注意，如果表已经存在会报错
+            {
+                columnList.clear();
+                insertline=QString("select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='%1'").arg(comboBox_code->currentText());
+                query.exec(insertline);//获得表中所有列名
+                while(query.next())
+                {
+                    columnList.append(query.value(0).toString());
+                }
+                //columnList.pop_front();
+
+                selectable->setRowCount(columnList.count()-1);
+                selectable->setRowHeight(0, 20);
+                for(int i=1; i<columnList.count();i++)//将时间列外的其它列名（即参数名）添加到可选参数列表中
+                {
+                    selectable->setItem(i-1,0,new QTableWidgetItem(columnList.at(i)));
+                    selectable->setRowHeight(i-1, 20);
+                }
+            }
+            else
+                qDebug() << comboBox_code->currentText()+"表不存在";
         }
+        else
+            qDebug() << db.lastError();
     }
     else
     {
@@ -1373,7 +1453,7 @@ void MainWindow::codeChanged(const QString& code)
     selected->setRowCount(0);
     if(comboBox_style->currentText()=="参数")
     {
-        paramList.clear();
+/*        paramList.clear();
         //selectable->clearContents();
         paramList = multiMap.values(code);
         selectable->setRowCount(paramList.count());
@@ -1381,7 +1461,38 @@ void MainWindow::codeChanged(const QString& code)
         {
             selectable->setItem(i,0,new QTableWidgetItem(paramList.at(i)));
             selectable->setRowHeight(i, 20);
+        }*/
+
+        if(db.open())
+        {
+            QSqlQuery query;
+            QString insertline;
+            QStringList strTables = db.tables();
+
+            if(strTables.contains(code)) //新建表时需注意，如果表已经存在会报错
+            {
+                columnList.clear();
+                insertline=QString("select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='%1'").arg(code);
+                query.exec(insertline);//获得表中所有列名
+                while(query.next())
+                {
+                    columnList.append(query.value(0).toString());
+                }
+                //columnList.pop_front();
+
+                selectable->setRowCount(columnList.count()-1);
+                selectable->setRowHeight(0, 20);
+                for(int i=1; i<columnList.count();i++)
+                {
+                    selectable->setItem(i-1,0,new QTableWidgetItem(columnList.at(i)));
+                    selectable->setRowHeight(i-1, 20);
+                }
+            }
+            else
+                qDebug() << code+"表不存在";
         }
+        else
+            qDebug() << db.lastError();
     }
     else
     {

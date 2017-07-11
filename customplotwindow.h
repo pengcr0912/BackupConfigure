@@ -41,6 +41,8 @@ public:
 
     void setupPlayground(QCustomPlot *customPlot);
 
+    void drawCurve(QString name, QList<double> value);
+
 private slots:
     void realtimeDataSlot();
     void bracketDataSlot();

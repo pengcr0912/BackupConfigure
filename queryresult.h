@@ -13,11 +13,16 @@ public:
     ~QueryResult();
 
     QTableWidget* tableWidget;
+    QStringList tableColumnList;
+    QList<double> ydList;
 
     void setLogTable(QStringList& timeList, QStringList& typeList, QStringList& logList);
     void setParamTable(QStringList& timeList, QStringList paramList, QStringList& valueList);
 
     virtual void resizeEvent(QResizeEvent *event);
+
+private slots:
+    void onHeaderClicked(int i);
 
 };
 

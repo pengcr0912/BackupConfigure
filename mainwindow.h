@@ -43,13 +43,14 @@ public:
     QDateTimeEdit* timeEnd;
     QComboBox* comboBox_style;
     QComboBox* comboBox_code;
-    QTableWidget* selectable;
+    QTableWidget* selectable;//查询界面下用于显示某一设备数据库中的可选参数
     QTableWidget* selected;
-    QStringList codeList;
-    QStringList paramList;
-    QMultiMap<QString, QString> multiMap;
-    int rowCnt;
-    QStringList selectedList;
+    QStringList codeList;//当前DeviceParam表中所有设备代号，不代表数据库中所有设备代号，之前在数据库中存在过的设备代号在查询界面ComboBox中无法显示，无法查询！！！
+    QStringList paramList;//当前DeviceParam表中某一设备的所有参数
+    QMultiMap<QString, QString> multiMap;//设备代号和监视参数键值对，同一个设备代号可对应多个参数，因此采用QMultiMap
+    int rowCnt;//查询界面下已选参数个数
+    QStringList selectedList;//查询界面下某一设备已选参数
+    QStringList columnList;//数据库中某一设备表中所有列（包括时间列和参数列）
 
 //    DeviceInfo* deviceInfo;
 

@@ -14,7 +14,8 @@ CustomPlotWindow::CustomPlotWindow(QWidget *parent) :
     ui->setupUi(this);
     setGeometry(400, 250, 542, 390);
 
-    setupDemo(10);
+    //setupDemo(10);
+
     //setupPlayground(ui->customPlot);
     // 0:  setupQuadraticDemo(ui->customPlot);
     // 1:  setupSimpleDemo(ui->customPlot);
@@ -75,6 +76,32 @@ void CustomPlotWindow::setupDemo(int demoIndex)
   setWindowTitle("QCustomPlot: "+demoName);
   statusBar()->clearMessage();
   currentDemoIndex = demoIndex;
+  ui->customPlot->replot();
+}
+
+void CustomPlotWindow::drawCurve(QString name, QList<double> value)
+{
+  int cnt= value.count();
+  // generate some data:
+  QVector<double> x(cnt), y(cnt); // initialize with entries 0..100
+  for (int i=0; i<cnt; ++i)
+  {
+    x[i] = i; // x goes from -1 to 1
+    y[i] = value.at(i);  // let's plot a quadratic function
+  }
+  // create graph and assign data to it:
+  ui->customPlot->addGraph();
+  ui->customPlot->graph(0)->setData(x, y);
+  // give the axes some labels:
+  ui->customPlot->xAxis->setLabel("x");
+  ui->customPlot->yAxis->setLabel("y");
+  // set axes ranges, so we see all data:
+  ui->customPlot->xAxis->setRange(0, cnt);
+  ui->customPlot->yAxis->setRange(0, 5);//设为最大值和最小值
+
+  setWindowTitle(name);
+  statusBar()->clearMessage();
+  //currentDemoIndex = demoIndex;
   ui->customPlot->replot();
 }
 
