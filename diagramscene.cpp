@@ -16,8 +16,11 @@ DiagramScene::DiagramScene(QObject *parent)
     textItem = NULL;
     myTextColor = Qt::black;
 
-//    mysql->open();
-
+    QPoint from(100,100);
+    QRect to(200,200,50,50);
+    ArrowItem *arrowItem = new ArrowItem;
+    arrowItem->setData(from,to);
+    addItem(arrowItem);
 }
 void DiagramScene::setMode(Mode mode )
 {

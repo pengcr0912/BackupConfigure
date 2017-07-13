@@ -56,6 +56,7 @@ public:
 
     int genDataCnt;
     QList<double> genDataList;
+
 //    DeviceInfo* deviceInfo;
 
 protected:

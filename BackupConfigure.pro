@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     qcustomplot.cpp \
     pixitem.cpp \
     mysql.cpp \
-    queryresult.cpp
+    queryresult.cpp \
+    arrowitem.cpp
 
 HEADERS  += mainwindow.h \
     textitem.h \
@@ -46,7 +47,8 @@ HEADERS  += mainwindow.h \
     qcustomplot.h \
     pixitem.h \
     mysql.h \
-    queryresult.h
+    queryresult.h \
+    arrowitem.h
 
 OTHER_FILES += \
     MyConfigure.pro.user \

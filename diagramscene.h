@@ -8,6 +8,8 @@
 #include "mainwindow.h"
 #include "ellipseitem.h"
 #include "pixitem.h"
+#include "arrowitem.h"
+
 //#include "mysql.h"
 
 #include <QGraphicsScene>

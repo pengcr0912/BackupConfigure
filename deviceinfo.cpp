@@ -256,6 +256,7 @@ void DeviceInfo::setDevice()
                 ui->tableWidget->setItem(myRowCnt, 2, new QTableWidgetItem(query.value(4).toString()));
                 myRowCnt++;
             }
+            setWindowTitle(ui->lineEdit_code->text());
         }
         else
             qDebug() << "jtgl表不存在";
@@ -353,7 +354,11 @@ void DeviceInfo::save()
 
 void DeviceInfo::updateData()
 {
+    const QColor color1 = QColor(255,200,200);
+    const QColor color2 = QColor(255,255,255);
     itemValueList->clear();
+    double min;
+    double max;
     QMap<QString, QString> paramValueMap;
     QString paramName;
     paramValueMap = currentTable->value(ui->lineEdit_code->text());
@@ -361,6 +366,8 @@ void DeviceInfo::updateData()
     QString str;
     for(int i=0;i<myRowCnt;i++)
     {
+        min = ui->tableWidget->item(i,1)->text().toDouble();
+        max = ui->tableWidget->item(i,2)->text().toDouble();
         nameItem = ui->tableWidget->item(i,0);
         if(nameItem)
         {
@@ -368,6 +375,10 @@ void DeviceInfo::updateData()
             str = paramValueMap.value(paramName);
             ui->tableWidget->setItem(i, 3, new QTableWidgetItem(str));
             itemValueList->append(str);
+            if(str.toDouble() > max || str.toDouble() < min)
+                ui->tableWidget->item(i,3)->setBackgroundColor(color1);
+            else
+                ui->tableWidget->item(i,3)->setBackgroundColor(color2);
         }
     }
 }

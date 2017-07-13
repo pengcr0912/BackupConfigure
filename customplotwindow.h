@@ -16,6 +16,8 @@ public:
     QStringList strTime;
     int itemNum;
     QStringList* itemValueList;
+    double valueMax;
+    double valueMin;
 public:
     explicit CustomPlotWindow(QWidget *parent = 0);
     ~CustomPlotWindow();
