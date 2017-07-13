@@ -52,6 +52,10 @@ public:
     QStringList selectedList;//查询界面下某一设备已选参数
     QStringList columnList;//数据库中某一设备表中所有列（包括时间列和参数列）
 
+    QMap<QString, QString> paramValueMap;//具体某一设备的各参数和对应的值
+
+    int genDataCnt;
+    QList<double> genDataList;
 //    DeviceInfo* deviceInfo;
 
 protected:
@@ -100,6 +104,7 @@ private slots:
 
     void currentFontChanged(const QFont &font);
     void fontSizeChanged(const QString &size);
+    void sceneScaleChanged(const QString &scale);
 
     void properties();
     void textColor();
@@ -107,15 +112,19 @@ private slots:
     void group();
     void ungroup();
 
-    void insertLog();
+    void insertValue();
     void startInsert();
     void stopInsert();
+
+    void genData();
 
 private:
     void createActions();
     void createMenus();
     void createToolbars();
     void createToolBox();
+
+    void writeLog(int iType, QString strLog);
 
     QMenu *createColorMenu(const char *slot, QColor defaultColor);
     QMenu *createLineMenu(const char *slot );
@@ -148,12 +157,17 @@ private:
     QToolBar *ItemToolBar;
     QToolBar *colorToolBar;
     QToolBar *textToolBar;
+    QToolBar *scaleToolBar;
     QToolButton *fillColorToolButton;
     QToolButton *lineColorToolButton;
     QToolButton *lineWidthToolButton;
 
     QComboBox *fontSizeCombo;
     QFontComboBox *fontCombo;
+    QComboBox *sceneScaleCombo;
+
+    QListWidget* logWidget;
+    int logRowCnt;
 
     QStringList recentFiles;
     QString curFile;

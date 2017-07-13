@@ -50,11 +50,11 @@ void QueryResult::setLogTable(QStringList& timeList, QStringList& typeList, QStr
 
         str = typeList.at(i);
         if(str == "信息")
-            color = QColor(150,255,150);
+            color = QColor(200,255,200);
         else if(str == "报警")
-            color = QColor(255,255,150);
+            color = QColor(255,255,200);
         else if(str == "错误")
-            color = QColor(255,150,150);
+            color = QColor(255,200,200);
 
         for(int j=0;j<3;j++)
         {
@@ -67,6 +67,7 @@ void QueryResult::setLogTable(QStringList& timeList, QStringList& typeList, QStr
 
 void QueryResult::setParamTable(QStringList& timeList, QStringList selectedList, QStringList& valueList)
 {
+    xstrList = timeList;
     tableColumnList = selectedList;
     int rowCnt = timeList.count();
     int columnCnt = selectedList.count() + 1;
@@ -113,7 +114,7 @@ void QueryResult::onHeaderClicked(int i)
         Qt::WindowFlags flags = 0;
         flags |= Qt::WindowMinimizeButtonHint;
         //cp->setWindowFlags(flags); // 设置禁止最大化
-        cp->drawCurve(tableColumnList.at(i-1), &ydList);
+        cp->drawCurve(tableColumnList.at(i-1), xstrList, &ydList);
         cp->show();
         //QMessageBox::about(NULL, "warning", "绘制曲线");
     }

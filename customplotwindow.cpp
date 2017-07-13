@@ -79,14 +79,15 @@ void CustomPlotWindow::setupDemo(int demoIndex)
   ui->customPlot->replot();
 }
 
-void CustomPlotWindow::drawCurve(QString name, QList<double>* value)
+void CustomPlotWindow::drawCurve(QString name, QStringList& time, QList<double>* value)
 {
+  strTime = time;//涉及太多数据拷贝，需改进！！！
   int cnt= value->count();
   double max = value->at(0);
   double min = value->at(0);
   //double temp;
   // generate some data:
-  QVector<double> x(cnt), y(cnt); // initialize with entries 0..100
+  QVector<double> x(cnt), y(cnt); // 未考虑一次查询对点数太多的情况！！！
   for (int i=0; i<cnt; ++i)
   {
     x[i] = i; // x goes from -1 to 1
@@ -127,9 +128,42 @@ void CustomPlotWindow::myMouseMove(QMouseEvent* e)
     float y_val = ui->customPlot->yAxis->pixelToCoord(y_pos);
 
     QString hint;
-    hint = QString("( x = %1   y = %2 )").arg(x_val).arg(y_val);
-    ui->customPlot->setToolTip(hint);
+    int i=qRound(x_val);//对浮点数取整
+    if(i>=0 && i<strTime.count())
+    {
+        hint = QString("( x = %1  y = %2 ) \n      %3").arg(x_val).arg(y_val).arg(strTime.at(i));//List随机访问效率低，需改进！！！
+        ui->customPlot->setToolTip(hint);
+    }
 }
+
+void CustomPlotWindow::drawRealtimeCurve(QString name, int i, QStringList* valueList)
+{
+  itemNum=i;
+  itemValueList = valueList;
+  ui->customPlot->addGraph(); // blue line
+  ui->customPlot->graph(0)->setPen(QPen(QColor(40, 110, 255)));
+  ui->customPlot->addGraph(); // red line
+  ui->customPlot->graph(1)->setPen(QPen(QColor(255, 110, 40)));
+
+  QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
+  timeTicker->setTimeFormat("%h:%m:%s");
+  ui->customPlot->xAxis->setTicker(timeTicker);
+  ui->customPlot->axisRect()->setupFullAxesBox();
+  ui->customPlot->yAxis->setRange(-1, 1);
+
+  // make left and bottom axes transfer their ranges to right and top axes:
+//  connect(ui->customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), ui->customPlot->xAxis2, SLOT(setRange(QCPRange)));
+//  connect(ui->customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->customPlot->yAxis2, SLOT(setRange(QCPRange)));
+
+  // setup a timer that repeatedly calls MainWindow::realtimeDataSlot:
+  connect(&dataTimer, SIGNAL(timeout()), this, SLOT(realtimeDataSlot()));
+  dataTimer.start(1000); // Interval 0 means to refresh as fast as possible
+
+  setWindowTitle(name);
+  statusBar()->clearMessage();
+  ui->customPlot->replot();
+}
+
 
 void CustomPlotWindow::setupQuadraticDemo(QCustomPlot *customPlot)
 {
@@ -1399,6 +1433,7 @@ void CustomPlotWindow::setupFinancialDemo(QCustomPlot *customPlot)
 
 void CustomPlotWindow::realtimeDataSlot()
 {
+/*
   static QTime time(QTime::currentTime());
   // calculate two new data points:
   double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
@@ -1431,6 +1466,42 @@ void CustomPlotWindow::realtimeDataSlot()
     lastFpsKey = key;
     frameCount = 0;
   }
+*/
+    QString str;
+    static QTime time(QTime::currentTime());
+    // calculate two new data points:
+    double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
+    static double lastPointKey = 0;
+    if (key-lastPointKey > 1) // at most add point every 1s
+    {
+      // add data to lines:
+      //ui->customPlot->graph(0)->addData(key, qSin((key/200)*3.14159));
+      str = itemValueList->at(itemNum);
+      ui->customPlot->graph(0)->addData(key, str.toDouble());
+      ui->customPlot->graph(1)->addData(key, qCos((key/200)*3.14159));
+      // rescale value (vertical) axis to fit the current data:
+      //ui->customPlot->graph(0)->rescaleValueAxis();
+      //ui->customPlot->graph(1)->rescaleValueAxis(true);
+      lastPointKey = key;
+    }
+    // make key axis range scroll with the data (at a constant range size of 400):
+    ui->customPlot->xAxis->setRange(key, 400, Qt::AlignRight);//X轴总共可显示400个点，与X坐标像素大小一致
+    ui->customPlot->replot();
+
+    // calculate frames per second:
+    static double lastFpsKey;
+    static int frameCount;
+    ++frameCount;
+    if (key-lastFpsKey > 1) // average fps over 2 seconds
+    {
+      ui->statusBar->showMessage(
+            QString("%1 FPS, Total Data points: %2")
+            .arg(frameCount/(key-lastFpsKey), 0, 'f', 0)
+            .arg(ui->customPlot->graph(0)->data()->size()+ui->customPlot->graph(1)->data()->size())
+            , 0);
+      lastFpsKey = key;
+      frameCount = 0;
+    }
 }
 
 void CustomPlotWindow::bracketDataSlot()

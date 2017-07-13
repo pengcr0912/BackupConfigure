@@ -15,6 +15,7 @@
 #include <QFontDialog>*/
 
 extern QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");//使用全局变量解决多个连接问题，后续考虑改为单例模式
+extern QMap<QString, QMap<QString, QString>>* currentTable = new QMap<QString, QMap<QString, QString>>;//用于存放当前一帧各设备各参数的值
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -55,7 +56,12 @@ MainWindow::MainWindow(QWidget *parent)
     //    setPalette(pal);
 
     timer = new QTimer(this);
-    connect(timer,SIGNAL(timeout()),this,SLOT(insertLog()));
+    connect(timer,SIGNAL(timeout()),this,SLOT(insertValue()));
+
+    QTimer *timer2 = new QTimer(this);
+    connect(timer2,SIGNAL(timeout()),this,SLOT(genData()));
+    timer2->start(1000);
+    genDataCnt=0;
 
     rowCnt=0;
 
@@ -290,8 +296,8 @@ void MainWindow::createToolbars()
     editToolBar->addAction(copyAction);
     editToolBar->addAction(pasteAction);
     editToolBar->addAction(deleteAction);
-    editToolBar->addAction(groupAction);
-    editToolBar->addAction(ungroupAction);
+//    editToolBar->addAction(groupAction);
+//    editToolBar->addAction(ungroupAction);
 
     ItemToolBar = addToolBar(tr("shape"));
     ItemToolBar->addAction(addRectangleAction);
@@ -367,6 +373,15 @@ void MainWindow::createToolbars()
     colorToolBar->addWidget(lineWidthToolButton);
     colorToolBar->addWidget(pointerToolButton);
 
+    scaleToolBar = addToolBar("scale");
+    sceneScaleCombo = new QComboBox;
+    QStringList scales;
+    scales << tr("50%") << tr("75%") << tr("100%") << tr("125%") << tr("150%");
+    sceneScaleCombo->addItems(scales);
+    sceneScaleCombo->setCurrentIndex(2);
+    connect(sceneScaleCombo, SIGNAL(currentIndexChanged(const QString &)),
+            this, SLOT(sceneScaleChanged(const QString &)));
+    scaleToolBar->addWidget(sceneScaleCombo);
 
 }
 
@@ -989,6 +1004,14 @@ void MainWindow::createToolBox()
     QWidget *backgroundWidget = new QWidget;
     //    backgroundWidget->setLayout(backgroundLayout);
 
+    QWidget *statusWidget = new QWidget;
+    logWidget = new QListWidget;
+    logRowCnt = 0;
+    //logWidget->setAlternatingRowColors(true);//背景颜色隔行区分
+    QVBoxLayout* logLayout = new QVBoxLayout;
+    logLayout->addWidget(logWidget);
+    statusWidget->setLayout(logLayout);
+    writeLog(0,"程序开始启动");
 
     QWidget *sqlWidget = new QWidget;
     QGridLayout *sqlLayout = new QGridLayout;
@@ -1178,7 +1201,8 @@ void MainWindow::createToolBox()
     toolBox = new QToolBox;
     //    toolBox->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Ignored));
     //    toolBox->setMinimumWidth(itemWidget->sizeHint().width());
-    toolBox->addItem(itemWidget, tr("设备监控"));
+    //toolBox->addItem(itemWidget, tr("设备监控"));
+    toolBox->addItem(statusWidget, tr("设备监控"));
     toolBox->addItem(backgroundWidget, tr("知识管理"));
     toolBox->addItem(sqlWidget, tr("数据查询"));
     toolBox->addItem(paramWidget, tr("参数设置"));
@@ -1229,6 +1253,7 @@ void MainWindow::startQuery()
                 }
 
                 QueryResult* resultWindow = new QueryResult(this);
+                resultWindow->setWindowTitle(comboBox_code->currentText());
                 resultWindow->setLogTable(timeList, typeList, resultList);//涉及大量copy，后续需改进
                 resultWindow->show();
             }
@@ -1241,7 +1266,7 @@ void MainWindow::startQuery()
         else
         {
             strCode=comboBox_code->currentText();
-            if(strTables.contains(strCode)) //新建表时需注意，如果表已经存在会报错
+            if(strTables.contains(strCode))
             {
                 /*insertline=QString("select count(*) from information_schema.COLUMNS  where table_schema = 'jtgl' and table_name = '%1'")
                                   .arg(strCode);
@@ -1278,6 +1303,7 @@ void MainWindow::startQuery()
                 }
 
                 QueryResult* resultWindow = new QueryResult(this);
+                resultWindow->setWindowTitle(comboBox_code->currentText());
                 resultWindow->setParamTable(timeList, selectedColumnList, resultList);//涉及大量copy，后续需改进
                 resultWindow->show();
             }
@@ -1287,12 +1313,13 @@ void MainWindow::startQuery()
                 return;
             }
         }
+        writeLog(0, comboBox_code->currentText() + "查询" +comboBox_style->currentText());
     }
     else
         qDebug() << db.lastError();
 }
 
-void MainWindow::insertLog()
+void MainWindow::insertValue()
 {
     if(db.open())
     {
@@ -1317,58 +1344,57 @@ void MainWindow::insertLog()
         else
             QMessageBox::about(NULL, "warning", "DeviceLog表不存在");*/
 
-        if(strTables.contains("TCF"))
+        QStringList columnTempList;
+        QStringList paramTempList;
+        QString strDeviceCode;
+        QMap<QString, QString> inputMap;
+        for(int j=0;j<codeList.count();j++)
         {
-            columnList.clear();
-            insertline=QString("select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='%1'").arg("TCF");
-            query.exec(insertline);
-            while(query.next())
-                columnList.append(query.value(0).toString());
-
-            paramList.clear();
-            paramList = multiMap.values("TCF");
-            QString str;
-            QStringList inputList;
-            inputList << "1" << "2" << "3";
-            QStringList valueList;
-            QMap<QString, QString> inputMap;
-            inputMap.insert(paramList.at(0),inputList.at(0));
-            inputMap.insert(paramList.at(1),inputList.at(1));
-            inputMap.insert(paramList.at(2),inputList.at(2));
-            QDateTime time = QDateTime::currentDateTime();
-            QString strTime = time.toString("yyyy-MM-dd hh:mm:ss");
-            str="insert into TCF values('"+strTime+"','";
-            int cnt = columnList.count();
-            for(int i=0; i<cnt-2; i++)
+            strDeviceCode = codeList.at(j);
+            if(strTables.contains(strDeviceCode))
             {
-                if(paramList.contains(columnList.at(i+1)))
-                    valueList.append(inputMap.value(columnList.at(i+1)));
+                columnTempList.clear();
+                insertline=QString("select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='%1'").arg(strDeviceCode);
+                query.exec(insertline);
+                while(query.next())
+                    columnTempList.append(query.value(0).toString());
+
+                paramTempList.clear();
+                paramTempList = multiMap.values(strDeviceCode);
+
+                QString str;
+                QStringList valueList;
+
+                inputMap = currentTable->value(strDeviceCode);
+
+                QDateTime time = QDateTime::currentDateTime();
+                QString strTime = time.toString("yyyy-MM-dd hh:mm:ss");
+                str=QString("insert into %1 values('").arg(strDeviceCode);
+                str=str+strTime+"','";
+
+
+                int cnt = columnTempList.count();
+                for(int i=0; i<cnt-2; i++)
+                {
+                    if(paramTempList.contains(columnTempList.at(i+1)))
+                        valueList.append(inputMap.value(columnTempList.at(i+1)));
+                    else
+                        valueList.append("");
+
+                    str=str+valueList.at(i)+"','";
+                }
+                if(paramTempList.contains(columnTempList.at(cnt-1)))
+                    valueList.append(inputMap.value(columnTempList.at(cnt-1)));
                 else
                     valueList.append("");
 
-                str=str+valueList.at(i)+"','";
+                str=str+valueList.at(cnt-2)+"')";
+                query.exec(str);
             }
-            if(paramList.contains(columnList.at(cnt-1)))
-                valueList.append(inputMap.value(columnList.at(cnt-1)));
             else
-                valueList.append("");
+                QMessageBox::about(NULL, "warning", strDeviceCode+"表不存在");
 
-            str=str+valueList.at(cnt-2)+"')";
-            query.exec(str);
-/*
-            insertline = QString("insert into TCF values('%1','%2','%3','%4','%5','%6')")
-                    .arg(strTime)
-                    .arg("1")
-                    .arg("2")
-                    .arg("3")
-                    .arg("")
-                    .arg("");
-            bool flag = query.exec(insertline);//values中应包括数据库表中所有列的值，而不只是当前paramList中的值*/
-            //qDebug() << flag;
         }
-        else
-            QMessageBox::about(NULL, "warning", "TCF表不存在");
-
     }
     else
         qDebug() << db.lastError();
@@ -1524,4 +1550,61 @@ void MainWindow::deleteParam(int i, int j)
      selected->removeRow(i);
      selectedList.removeAll(str);
      rowCnt--;
+}
+
+void MainWindow::sceneScaleChanged(const QString &scale)
+{
+    double newScale = scale.left(scale.indexOf(tr("%"))).toDouble() / 100.0;
+    QMatrix oldMatrix = view->matrix();
+    view->resetMatrix();
+    view->translate(oldMatrix.dx(), oldMatrix.dy());
+    view->scale(newScale, newScale);
+}
+
+void MainWindow::writeLog(int iType, QString strLog)
+{
+    QDateTime time = QDateTime::currentDateTime();
+    QString strTime = time.toString("yyyy-MM-dd hh:mm:ss");
+    logWidget->addItem(strTime + "  " + strLog);
+
+    QColor color;
+    QListWidgetItem* listItem = new QListWidgetItem;
+    listItem = logWidget->item(logRowCnt);
+    if(listItem)
+    {
+        if(iType == 0)
+            color = QColor(200,255,200);
+        else if(iType == 1)
+            color = QColor(255,255,200);
+        else if(iType == 2)
+            color = QColor(255,200,200);
+
+        listItem->setBackground(color);
+    }
+    logRowCnt++;
+}
+
+void MainWindow::genData()
+{
+    //genDataCnt++;
+    QStringList paramTempList;
+    double value;
+    QString strValue;
+
+    for(int i=0;i<codeList.count();i++)
+    {
+        paramTempList.clear();
+        paramValueMap.clear();
+        paramTempList = multiMap.values(codeList.at(i));
+        for(int j=0;j<paramTempList.count();j++)
+        {
+            genDataCnt++;
+            value = qSin((genDataCnt/200.0)*3.14159);
+            strValue = QString::number(value);
+            paramValueMap.insert(paramTempList.at(j), strValue);
+        }
+        currentTable->insertMulti(codeList.at(i),paramValueMap);
+    }
+
+    //value = qCos((genDataCnt/200.0)*3.14159);
 }

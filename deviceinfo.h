@@ -23,6 +23,8 @@ public:
     DeviceParam myParam;
     int myRowCnt;
 
+    QStringList* itemValueList;
+
 public:
     explicit DeviceInfo(BaseItem *baseItem, QWidget *parent = 0);
     explicit DeviceInfo(PixItem *pixItem, QWidget *parent = 0);
@@ -49,6 +51,7 @@ private slots:
     void save();
     void statusConfirm(int i,int j);
     void onHeaderClicked(int i);
+    void updateData();
 
 };
 

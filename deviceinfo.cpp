@@ -9,6 +9,7 @@
 #include <QDebug>
 
 extern QSqlDatabase db;
+extern QMap<QString, QMap<QString, QString>>* currentTable;
 
 DeviceInfo::DeviceInfo(BaseItem *baseItem, QWidget *parent) :
     QMainWindow(parent),
@@ -17,7 +18,6 @@ DeviceInfo::DeviceInfo(BaseItem *baseItem, QWidget *parent) :
     ui->setupUi(this);
 
     myItem = baseItem;
-
     myRowCnt=0;
 
     //    myItem->setPen(Qt::green);
@@ -92,7 +92,6 @@ DeviceInfo::DeviceInfo(BaseItem *baseItem, QWidget *parent) :
     connect(ui->tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(statusConfirm(int,int)));
 }
 
-
 DeviceInfo::DeviceInfo(PixItem *pixItem, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::DeviceInfo)
@@ -106,6 +105,12 @@ DeviceInfo::DeviceInfo(PixItem *pixItem, QWidget *parent) :
     //    myItem->setBrush(Qt::green);
     //    mypixItem->setBrush(Qt::blue);
     mypixItem->update();
+
+    QTimer *timer = new QTimer(this);
+    connect(timer,SIGNAL(timeout()),this,SLOT(updateData()));
+    timer->start(1000);
+
+    itemValueList = new QStringList;
 
     Qt::WindowFlags flags = 0;
     flags |= Qt::WindowMinimizeButtonHint;
@@ -163,7 +168,11 @@ void DeviceInfo::plotSlot(int i, int j)
         Qt::WindowFlags flags = 0;
         flags |= Qt::WindowMinimizeButtonHint;
         cp->setWindowFlags(flags); // 设置禁止最大化
-        cp->setupDemo(10);
+        QString str="";
+        tableItem = ui->tableWidget->item(i,0);
+        if(tableItem)
+            str = tableItem->text();
+        cp->drawRealtimeCurve(str, i, itemValueList);
         cp->show();
     }
 }
@@ -325,7 +334,6 @@ void DeviceInfo::save()
         else
             qDebug() << "DeviceParam表不存在";
 
-
         if(!strTables.contains(mypixItem->deviceCode))
         {
             insertline = QString("create table %1 (dateTime VARCHAR(50))").arg(mypixItem->deviceCode);
@@ -341,5 +349,25 @@ void DeviceInfo::save()
     }
     else
         qDebug() << db.lastError();
+}
 
+void DeviceInfo::updateData()
+{
+    itemValueList->clear();
+    QMap<QString, QString> paramValueMap;
+    QString paramName;
+    paramValueMap = currentTable->value(ui->lineEdit_code->text());
+    QTableWidgetItem* nameItem = new QTableWidgetItem;
+    QString str;
+    for(int i=0;i<myRowCnt;i++)
+    {
+        nameItem = ui->tableWidget->item(i,0);
+        if(nameItem)
+        {
+            paramName = nameItem->text();
+            str = paramValueMap.value(paramName);
+            ui->tableWidget->setItem(i, 3, new QTableWidgetItem(str));
+            itemValueList->append(str);
+        }
+    }
 }

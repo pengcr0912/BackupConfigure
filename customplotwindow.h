@@ -12,7 +12,10 @@ class CustomPlotWindow;
 class CustomPlotWindow : public QMainWindow
 {
     Q_OBJECT
-
+public:
+    QStringList strTime;
+    int itemNum;
+    QStringList* itemValueList;
 public:
     explicit CustomPlotWindow(QWidget *parent = 0);
     ~CustomPlotWindow();
@@ -41,8 +44,8 @@ public:
 
     void setupPlayground(QCustomPlot *customPlot);
 
-    void drawCurve(QString name, QList<double>* value);
-
+    void drawCurve(QString name, QStringList& time, QList<double>* value);
+    void drawRealtimeCurve(QString name, int i, QStringList* valueList);
 private slots:
     void realtimeDataSlot();
     void bracketDataSlot();

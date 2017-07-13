@@ -15,6 +15,7 @@ public:
     QTableWidget* tableWidget;
     QStringList tableColumnList;
     QList<double> ydList;
+    QStringList xstrList;
 
     void setLogTable(QStringList& timeList, QStringList& typeList, QStringList& logList);
     void setParamTable(QStringList& timeList, QStringList paramList, QStringList& valueList);
