@@ -43,9 +43,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     myDiagramScene = new DiagramScene;
     myDiagramScene->setSceneRect(QRect(0, 0, 2000, 1500));
+    QColor backgroundColor = QColor(250,255,255);
+    myDiagramScene->setBackgroundBrush(backgroundColor);
 
     connect(myDiagramScene,SIGNAL(itemSelected(QGraphicsItem*)),
             this,SLOT(itemSelected(QGraphicsItem*)));
+    connect(myDiagramScene, SIGNAL(wheelChanged(double)),
+            this, SLOT(sceneScaleChanged(double)));
+
     view = new QGraphicsView(myDiagramScene, this);
     view->setAutoFillBackground(true);
     view->setDragMode(QGraphicsView::RubberBandDrag);
@@ -194,6 +199,16 @@ void MainWindow::createActions()
     connect(addPixAction,SIGNAL(triggered()),
             this,SLOT(addPix()));
 
+    addArrowAction = new QAction(tr("actionAddArrow"),this);
+    addArrowAction->setIcon(QIcon("/users/hyn/images/siglearrow.png"));
+    connect(addArrowAction,SIGNAL(triggered()),
+            this,SLOT(addArrow()));
+
+    addDoubleArrowAction = new QAction(tr("actionDoubleAddArrow"),this);
+    addDoubleArrowAction->setIcon(QIcon("/users/hyn/images/doublearrow.png"));
+    connect(addDoubleArrowAction,SIGNAL(triggered()),
+            this,SLOT(addDoubleArrow()));
+
     toFrontAction = new QAction(tr("Bring to &Front"), this);
     toFrontAction->setShortcut(tr("Ctrl+F"));
     toFrontAction->setStatusTip(tr("Bring item to front"));
@@ -235,6 +250,16 @@ void MainWindow::createActions()
     textColorAction->setIcon(QIcon(creatTextColorIcon(Qt::black)));
     connect(textColorAction,SIGNAL(triggered()),
             this,SLOT(textColor()));
+
+    fillColorAction = new QAction(tr("fillcolor"),this);
+    fillColorAction->setIcon(QIcon(creatFillColorIcon(Qt::black)));
+    connect(fillColorAction,SIGNAL(triggered()),
+            this,SLOT(fillColor()));
+
+    lineColorAction = new QAction(tr("linecolor"),this);
+    lineColorAction->setIcon(QIcon(creatLineColorIcon(Qt::black)));
+    connect(lineColorAction,SIGNAL(triggered()),
+            this,SLOT(lineColor()));
 
     groupAction = new QAction(tr("group"),this);
     connect(groupAction,SIGNAL(triggered()),
@@ -305,6 +330,8 @@ void MainWindow::createToolbars()
     ItemToolBar->addAction(addTriangleAction);
     ItemToolBar->addAction(addLineAction);
     ItemToolBar->addAction(addTextAction);
+    ItemToolBar->addAction(addArrowAction);
+    ItemToolBar->addAction(addDoubleArrowAction);
     ItemToolBar->addAction(addPixAction);
 
     ItemToolBar->setOrientation(Qt::Vertical);
@@ -346,7 +373,7 @@ void MainWindow::createToolbars()
     lineColorToolButton->setPopupMode(QToolButton::MenuButtonPopup);
     lineColorToolButton->setMenu(createColorMenu(SLOT(outlineColorChanged()),
                                                  Qt::blue));
-    lineColorAction = lineColorToolButton->menu()->defaultAction();
+    lineAction = lineColorToolButton->menu()->defaultAction();
     lineColorToolButton->setIcon(createColorToolButtonIcon(
                                      ":/images/linecolor.png", Qt::blue));
     connect(lineColorToolButton, SIGNAL(clicked()),
@@ -360,6 +387,15 @@ void MainWindow::createToolbars()
     connect(lineWidthToolButton, SIGNAL(clicked()),
             this, SLOT(outlineWidthButtonTriggered()));
 
+
+            lineWidthCombo = new QComboBox;
+            QStringList lineWidthList;
+            lineWidthList << "1" << "2" << "3" << "4" << "5" << "6" << "7" << "8" << "9";
+            lineWidthCombo->addItems(lineWidthList);
+            lineWidthCombo->setCurrentIndex(1);
+            connect(lineWidthCombo, SIGNAL(currentIndexChanged(const QString &)),
+                    this, SLOT(lineWidthChanged()));
+
     QToolButton *pointerToolButton = new QToolButton;
     pointerToolButton->setCheckable(true);
     pointerToolButton->setChecked(true);
@@ -368,21 +404,23 @@ void MainWindow::createToolbars()
             this, SLOT(pointerButtonClicked()));
 
     colorToolBar = addToolBar(tr("Color"));
-    colorToolBar->addWidget(fillColorToolButton);
-    colorToolBar->addWidget(lineColorToolButton);
-    colorToolBar->addWidget(lineWidthToolButton);
+    //colorToolBar->addWidget(fillColorToolButton);
+    colorToolBar->addAction(fillColorAction);
+    //colorToolBar->addWidget(lineColorToolButton);
+    colorToolBar->addAction(lineColorAction);
+    //colorToolBar->addWidget(lineWidthToolButton);
+    colorToolBar->addWidget(lineWidthCombo);
     colorToolBar->addWidget(pointerToolButton);
 
     scaleToolBar = addToolBar("scale");
     sceneScaleCombo = new QComboBox;
     QStringList scales;
-    scales << tr("50%") << tr("75%") << tr("100%") << tr("125%") << tr("150%");
+    scales << "50%" << "75%" << "100%" << "125%" << "150%";
     sceneScaleCombo->addItems(scales);
     sceneScaleCombo->setCurrentIndex(2);
     connect(sceneScaleCombo, SIGNAL(currentIndexChanged(const QString &)),
             this, SLOT(sceneScaleChanged(const QString &)));
     scaleToolBar->addWidget(sceneScaleCombo);
-
 }
 
 QMenu *MainWindow::createColorMenu(const char *slot, QColor defaultColor)
@@ -419,6 +457,7 @@ QIcon MainWindow::createColorIcon(QColor color)
 
     return QIcon(pixmap);
 }
+
 QIcon MainWindow::creatTextColorIcon(QColor color)
 {
     QPixmap pixmap(50, 80);
@@ -431,6 +470,33 @@ QIcon MainWindow::creatTextColorIcon(QColor color)
     painter.drawPixmap(target, image, source);
     return QIcon(pixmap);
 }
+
+QIcon MainWindow::creatFillColorIcon(QColor color)
+{
+    QPixmap pixmap(50, 80);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    QPixmap image(":/images/floodfill");
+    QRect target(0, 0, 50, 60);
+    QRect source(0, 0, 42, 42);
+    painter.fillRect(QRect(0, 60, 50, 80), color);
+    painter.drawPixmap(target, image, source);
+    return QIcon(pixmap);
+}
+
+QIcon MainWindow::creatLineColorIcon(QColor color)
+{
+    QPixmap pixmap(50, 80);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    QPixmap image(":/images/linecolor");
+    QRect target(0, 0, 50, 60);
+    QRect source(0, 0, 42, 42);
+    painter.fillRect(QRect(0, 60, 50, 80), color);
+    painter.drawPixmap(target, image, source);
+    return QIcon(pixmap);
+}
+
 QIcon MainWindow::createLineIcon(const int lineWidth)
 {
     QPixmap pixmap(320,80);
@@ -450,11 +516,11 @@ void MainWindow::fillColorChanged()
 }
 void MainWindow::outlineColorChanged()
 {
-    lineColorAction = qobject_cast<QAction *>(sender());
+    lineAction = qobject_cast<QAction *>(sender());
     lineColorToolButton->setIcon(createColorToolButtonIcon(
                                      ":/images/linecolor.png",
-                                     //qVariantValue<QColor>(lineColorAction->data())));
-                                     //lineColorAction->data().value<QColor>()));
+                                     //qVariantValue<QColor>(lineAction->data())));
+                                     //lineAction->data().value<QColor>()));
                                      Qt::red));
     outlineColorButtonTriggered();
 }
@@ -471,7 +537,7 @@ QMenu *MainWindow::createLineMenu(const char *slot )
         action->setData(int(lineWideList.at(i)));
         action->setIcon(createLineIcon(lineWideList.at(i)));
         connect(action, SIGNAL(triggered()),
-                this, slot);//此处的slot是lineWidthChanged()
+                this, slot);
         lineMenu->addAction(action);
         if(lineWideList.at(i) == 1)
         {
@@ -510,6 +576,12 @@ void MainWindow::outlineWidthChanged()
     lineWidthAction = qobject_cast<QAction *>(sender());
     outlineWidthButtonTriggered();
 }
+
+void MainWindow::lineWidthChanged()
+{
+    myDiagramScene->setLineWidth(lineWidthCombo->currentText().toInt());
+}
+
 void MainWindow::fillColorButtonTriggered()
 {
     //myDiagramScene->setItemColor(qVariantValue<QColor>(fillAction->data()));
@@ -517,8 +589,8 @@ void MainWindow::fillColorButtonTriggered()
 }
 void MainWindow::outlineColorButtonTriggered()
 {
-    //myDiagramScene->setLineColor(qVariantValue<QColor>(lineColorAction->data()));
-    myDiagramScene->setLineColor(lineColorAction->data().value<QColor>());
+    //myDiagramScene->setLineColor(qVariantValue<QColor>(lineAction->data()));
+    myDiagramScene->setLineColor(lineAction->data().value<QColor>());
 }
 void MainWindow::outlineWidthButtonTriggered()
 {
@@ -820,6 +892,16 @@ void MainWindow::addPix()
 {
     myDiagramScene->setMode(DiagramScene::InsertPixItem);
 }
+void MainWindow::addArrow()
+{
+    myDiagramScene->setMode(DiagramScene::InsertArrowItem);
+    myDiagramScene->arrowType=1;
+}
+void MainWindow::addDoubleArrow()
+{
+    myDiagramScene->setMode(DiagramScene::InsertArrowItem);
+    myDiagramScene->arrowType=2;
+}
 void MainWindow::deleteItem()
 {
     QList<QGraphicsItem *> items = myDiagramScene->selectedItems();
@@ -843,7 +925,7 @@ void MainWindow::updateActions()
     deleteAction->setEnabled(hasSelection);
     toFrontAction->setEnabled(hasSelection);
     sendBackAction->setEnabled(hasSelection);
-    lineColorAction->setEnabled(hasSelection);
+    lineAction->setEnabled(hasSelection);
     lineWidthAction->setEnabled(hasSelection);
     fillAction->setEnabled(hasSelection);
 }
@@ -905,13 +987,28 @@ void MainWindow::properties()
         }
     }
 }
+
 void MainWindow::textColor()
 {
     QColor col = QColorDialog::getColor(Qt::black,this);
     myDiagramScene->setTextColor(col);
     textColorAction->setIcon(creatTextColorIcon(col));
-
 }
+
+void MainWindow::fillColor()
+{
+    QColor col = QColorDialog::getColor(Qt::black,this);
+    myDiagramScene->setItemColor(col);
+    fillColorAction->setIcon(creatFillColorIcon(col));
+}
+
+void MainWindow::lineColor()
+{
+    QColor col = QColorDialog::getColor(Qt::black,this);
+    myDiagramScene->setLineColor(col);
+    lineColorAction->setIcon(creatLineColorIcon(col));
+}
+
 void MainWindow::group()
 {
     QList<QGraphicsItem *> oldItems = myDiagramScene->selectedItems();
@@ -1006,6 +1103,7 @@ void MainWindow::createToolBox()
 
     QWidget *statusWidget = new QWidget;
     logWidget = new QListWidget;
+    logWidget->setStyleSheet("background-color:rgb(250,255,255)");
     logRowCnt = 0;
     //logWidget->setAlternatingRowColors(true);//背景颜色隔行区分
     QVBoxLayout* logLayout = new QVBoxLayout;
@@ -1559,6 +1657,15 @@ void MainWindow::sceneScaleChanged(const QString &scale)
     view->resetMatrix();
     view->translate(oldMatrix.dx(), oldMatrix.dy());
     view->scale(newScale, newScale);
+}
+
+void MainWindow::sceneScaleChanged(double newScale)
+{
+    QMatrix oldMatrix = view->matrix();
+    view->resetMatrix();
+    view->translate(oldMatrix.dx(), oldMatrix.dy());
+    view->scale(newScale, newScale);
+    sceneScaleCombo->setCurrentIndex(newScale*4-2);
 }
 
 void MainWindow::writeLog(int iType, QString strLog)

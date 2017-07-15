@@ -14,15 +14,13 @@ DiagramScene::DiagramScene(QObject *parent)
     circle = NULL;
     line = NULL;
     textItem = NULL;
+    arrow = NULL;
     myTextColor = Qt::black;
-
-    QPoint from(100,100);
-    QRect to(200,200,50,50);
-    ArrowItem *arrowItem = new ArrowItem;
-    arrowItem->setData(from,to);
-    addItem(arrowItem);
+    myLineWidth = 2;
+    numDegrees=1;
+    arrowType=1;
 }
-void DiagramScene::setMode(Mode mode )
+void DiagramScene::setMode(Mode mode )//区分单次点击生成还是按起始和终点生成
 {
     myMode = mode;
     if(mode == MoveItem)
@@ -61,16 +59,22 @@ void DiagramScene::setLineColor(const QColor &color)
             if(BaseItem *baseItem = dynamic_cast<BaseItem *>(item))
                 baseItem->setPen(myLineColor);
             else if(LineItem *lineItem = dynamic_cast<LineItem *>(item))
-                lineItem->setPen(myLineColor);
+            {
+                myPen.setBrush(myLineColor);
+                lineItem->setPen(myPen);
+            }
+            else if(ArrowItem *arrowItem = dynamic_cast<ArrowItem *>(item))
+            {
+                myPen.setBrush(myLineColor);
+                arrowItem->setPen(myPen);
+            }
         }
     }
-
 }
 
 void DiagramScene::setLineWidth(const int width)
 {
     myLineWidth = width;
-    QPen linePen;
     if(!selectedItems().isEmpty())
     {
         foreach(QGraphicsItem *item, selectedItems())
@@ -79,8 +83,14 @@ void DiagramScene::setLineWidth(const int width)
                 baseItem->setPen(myLineWidth);
             else if(LineItem *lineItem = dynamic_cast<LineItem *>(item))
             {
-                linePen.setWidth(myLineWidth);
-                lineItem->setPen(linePen);
+                myPen.setWidth(myLineWidth);
+                lineItem->setPen(myPen);
+            }
+            else if(ArrowItem *arrowItem = dynamic_cast<ArrowItem *>(item))
+            {
+                myPen.setWidth(myLineWidth);
+                arrowItem->setPen(myPen);
+                arrowItem->setData(arrowItem->line().p1(),arrowItem->line().p2(),myLineWidth,arrowItem->iType);//只改变线宽会导致箭头大小不变，需根据新的线宽重绘箭头
             }
         }
     }
@@ -108,6 +118,7 @@ bool DiagramScene::writeFile(QFile &file)
         if(BaseItem *baseItem = dynamic_cast<BaseItem *>(item))
         {
             out << *baseItem;
+            out << baseItem->opacity();
         }
         else if(LineItem *lineItem = dynamic_cast<LineItem *>(item))
         {
@@ -135,6 +146,14 @@ bool DiagramScene::writeFile(QFile &file)
 //                << pixItem->deviceName
 //                << pixItem->deviceParamList;
         }
+        else if(ArrowItem *arrowItem = dynamic_cast<ArrowItem *>(item))
+        {
+            out << arrowItem->type()
+                << arrowItem->pos()
+                << arrowItem->line()
+                << arrowItem->pen()
+                << arrowItem->iType;
+        }
     }
 
     QApplication::restoreOverrideCursor();
@@ -155,21 +174,27 @@ bool DiagramScene::readFile(QFile &file)
         qint8 myPenWidth;
         QColor myBrushColor;
 
+        double opacity;
+
         QLineF myLine;
-        QColor linePenColor;
-        qint8 linePenWidth;
+        //QColor linePenColor;
+        //qint8 linePenWidth;
         QPen linePen;
+
+        QLineF myArrow;
+        QPen arrowPen;
+        int myType;
 
         QFont myFont;
         QString myString;
 
         QPixmap myPixmap;
-        QList<DeviceParam> myDeviceParamList;
+        //QList<DeviceParam> myDeviceParamList;
 
         in >> itemType;
         if(itemType == (QGraphicsItem::UserType + 3) || itemType == (QGraphicsItem::UserType + 4))
         {
-            in >> myRect >> mypos >> myPenColor >> myPenWidth >> myBrushColor;
+            in >> myRect >> mypos >> myPenColor >> myPenWidth >> myBrushColor >> opacity;
 
             if(in.status() != QDataStream::Ok)
             {
@@ -186,6 +211,7 @@ bool DiagramScene::readFile(QFile &file)
                 rectItem->setPen(myPenWidth);
                 rectItem->setBrush(QBrush(myBrushColor));
                 rectItem->setPos(mypos);
+                rectItem->setOpacity(opacity);
                 break;
             }
             case QGraphicsItem::UserType + 4:
@@ -197,6 +223,7 @@ bool DiagramScene::readFile(QFile &file)
                 ellipseItem->setPen(myPenWidth);
                 ellipseItem->setBrush(QBrush(myBrushColor));
                 ellipseItem->setPos(mypos);
+                ellipseItem->setOpacity(opacity);
                 break;
             }
             default:
@@ -253,7 +280,20 @@ bool DiagramScene::readFile(QFile &file)
 //            pixItem->deviceParamList = myDeviceParamList;
             addItem(pixItem);
         }
-
+        else if(itemType == QGraphicsItem::UserType + 8)
+        {
+            in >> mypos >> myArrow >> arrowPen >> myType;
+            if(in.status() != QDataStream::Ok)
+            {
+                return false;
+            }
+            ArrowItem *arrowItem = new ArrowItem;
+            arrowItem->setPos(mypos);
+            arrowItem->setLine(myArrow);
+            arrowItem->setPen(arrowPen);
+            arrowItem->setData(myArrow.p1(),myArrow.p2(),arrowPen.width(),myType);
+            addItem(arrowItem);
+        }
     }
 
     QList<QGraphicsItem *>  myitemlist = items();
@@ -304,10 +344,12 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
              circle->setPos(mouseEvent->scenePos());//设置起点
              circle->setPen(QPen(Qt::DotLine));
              addItem(circle);
+             //circle->setBrush(myItemColor);
          }
          break;
     }
     case InsertRectItem:
+    {
          Rect = new RectItem(QRectF(QPointF(0,0), QSizeF(0,0)));
          if(Rect)
          {
@@ -315,9 +357,12 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
              addItem(Rect);
              Rect->setPos(startPoint);//设置起点
              Rect->setPen(QPen(Qt::DotLine));
+             //Rect->setBrush(myItemColor);
          }
          break;
+    }
     case InsertLineItem:
+    {
          line = new LineItem;
          if(line)
          {
@@ -326,7 +371,20 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
              addItem(line);
          }
          break;
+    }
+    case InsertArrowItem:
+    {
+         arrow = new ArrowItem;
+         if(arrow)
+         {
+             setStartPoint(QPointF(mouseEvent->scenePos()));
+             arrow->setPen(QPen(Qt::DashLine));
+             addItem(arrow);
+         }
+         break;
+    }
     case InsertTextItem:
+    {
          textItem = new TextItem;
          if(textItem)
          {
@@ -343,17 +401,21 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
          }
          setMode(MoveItem);
          break;
+    }
     case InsertPixItem:
+    {
          pixmap = new  QPixmap("/users/hyn/images/deviceItem.jpg");
          pixItem = new PixItem(pixmap);
          if(pixItem)
          {
              addItem(pixItem);
              pixItem->setPos(mouseEvent->scenePos());
+             pixItem->setOpacity(0.1);
          }
          //        emit textInserted(textItem);//主要是想改变场景的模式
          setMode(MoveItem);
          break;
+    }
 
     default:
         ;
@@ -367,22 +429,36 @@ void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
     case InsertCircleItem:
     {
         if(circle)
-        circle->setRect(QRectF(QPointF(0,0), mouseEvent->scenePos() - startPoint).toRect().normalized());
+            circle->setRect(QRectF(QPointF(0,0), mouseEvent->scenePos() - startPoint).toRect().normalized());
         break;
     }
     case InsertRectItem:
     {
         if(Rect)
-        Rect->setRect(QRectF(QPointF(0,0) , mouseEvent->scenePos() - startPoint).normalized());
+            Rect->setRect(QRectF(QPointF(0,0) , mouseEvent->scenePos() - startPoint).normalized());
         break;
     }
     case InsertLineItem:
+    {
         if(line)
-        line->setLine(QLineF(startPoint , mouseEvent->scenePos()));
+            line->setLine(QLineF(startPoint , mouseEvent->scenePos()));
         break;
+    }
+    case InsertArrowItem:
+    {
+        if(arrow)
+        {
+            arrow->setLine(QLineF(startPoint , mouseEvent->scenePos()));
+            //arrow->setData(startPoint,QPointF(mouseEvent->scenePos()),myLineWidth,arrowType);
+            //update();
+        }
+        break;
+    }
     case MoveItem:
+    {
         QGraphicsScene::mouseMoveEvent(mouseEvent);
         break;
+    }
 
     default:
         ;
@@ -395,8 +471,8 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
     case InsertCircleItem:
         if(circle)
         {
-            circle->setPen(QPen(Qt::black, 2, Qt::SolidLine));
-            circle->setBrush(Qt::lightGray);
+            circle->setPen(QPen(myLineColor, myLineWidth, Qt::SolidLine));
+            circle->setBrush(myItemColor);
             circle = 0;
             setMode(MoveItem);
         }
@@ -404,8 +480,8 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
     case InsertRectItem:
         if(Rect)
         {
-            Rect->setPen(QPen(Qt::black, 2, Qt::SolidLine));
-            Rect->setBrush(Qt::lightGray);
+            Rect->setPen(QPen(myLineColor, myLineWidth, Qt::SolidLine));
+            Rect->setBrush(myItemColor);
             Rect = 0;
             setMode(MoveItem);
         }
@@ -413,15 +489,36 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
     case InsertLineItem:
         if(line)
         {
-            line->setPen(QPen(Qt::black, 2, Qt::SolidLine));
+            line->setPen(QPen(myLineColor, myLineWidth, Qt::SolidLine));
             setMode(MoveItem);
             line = 0;
         }
+        break;
+    case InsertArrowItem:
+        if(arrow)
+        {
+            arrow->setPen(QPen(myLineColor, myLineWidth, Qt::SolidLine));
+            arrow->setData(startPoint,QPointF(mouseEvent->scenePos()),myLineWidth,arrowType);
+            update();
+            setMode(MoveItem);
+            arrow = 0;
+        }
+        break;
     default:
            ;
     }
     QGraphicsScene::mouseReleaseEvent(mouseEvent);
 }
+
+void DiagramScene::wheelEvent(QGraphicsSceneWheelEvent *event)
+{
+    numDegrees = numDegrees + (event->delta()/120)*0.25;
+    numDegrees = (numDegrees > 1.5) ? 1.5 : numDegrees;
+    numDegrees = (numDegrees < 0.5) ? 0.5 : numDegrees;
+    wheelChanged(numDegrees);
+    //qDebug() << numDegrees;
+}
+
 /*DiagramScene::itemMoved(DiagramItem *movedItem, const QPointF &movedFromPosition)
 {
 

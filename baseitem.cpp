@@ -1,6 +1,6 @@
 
 #include "baseitem.h"
-//#include "propertiesdialog.h"
+#include "propertiesdialog.h"
 #include <groupitem.h>
 #include <QGraphicsSceneHoverEvent>
 #include <QGraphicsScene>
@@ -358,11 +358,11 @@ void BaseItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 void BaseItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
 
-//    PropertiesDialog dialog(this);
-//    dialog.exec();
+    PropertiesDialog dialog(this);
+    dialog.exec();
 
-    DeviceInfo* devicewindow = new DeviceInfo(this);
-    devicewindow->show();
+//    DeviceInfo* devicewindow = new DeviceInfo(this);
+//    devicewindow->show();
 }
 
 void BaseItem::paintShape(QPainter *, const QStyleOptionGraphicsItem *,

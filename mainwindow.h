@@ -57,8 +57,6 @@ public:
     int genDataCnt;
     QList<double> genDataList;
 
-//    DeviceInfo* deviceInfo;
-
 protected:
 //    void contextMenuEvent(QContextMenuEvent *event);
 
@@ -77,6 +75,8 @@ private slots:
     void addLine();
     void addText();
     void addPix();
+    void addArrow();
+    void addDoubleArrow();
     void deleteItem();
     void updateActions();
     QString strippedName(const QString &fullFileName);
@@ -106,9 +106,13 @@ private slots:
     void currentFontChanged(const QFont &font);
     void fontSizeChanged(const QString &size);
     void sceneScaleChanged(const QString &scale);
+    void sceneScaleChanged(double newScale);
+    void lineWidthChanged();
 
     void properties();
     void textColor();
+    void fillColor();
+    void lineColor();
 
     void group();
     void ungroup();
@@ -131,6 +135,8 @@ private:
     QMenu *createLineMenu(const char *slot );
     QIcon createColorIcon(QColor color);
     QIcon creatTextColorIcon(QColor color);
+    QIcon creatFillColorIcon(QColor color);
+    QIcon creatLineColorIcon(QColor color);
     QIcon createColorToolButtonIcon(const QString &imageFile, QColor color);
     QIcon createLineToolButtonIcon();
     QIcon createLineIcon(const int width);
@@ -166,6 +172,7 @@ private:
     QComboBox *fontSizeCombo;
     QFontComboBox *fontCombo;
     QComboBox *sceneScaleCombo;
+    QComboBox *lineWidthCombo;
 
     QListWidget* logWidget;
     int logRowCnt;
@@ -194,15 +201,19 @@ private:
     QAction *addLineAction;
     QAction *addTextAction;
     QAction *addPixAction;
+    QAction *addArrowAction;
+    QAction *addDoubleArrowAction;
     QAction *deleteAction;
     QAction *fillAction;
-    QAction *lineColorAction;
+    QAction *lineAction;
     QAction *lineWidthAction;
     QAction *boldAction;
     QAction *underlineAction;
     QAction *italicAction;
     QAction *propertiesAction;
     QAction *textColorAction;
+    QAction *fillColorAction;
+    QAction *lineColorAction;
     QAction *groupAction;
     QAction *ungroupAction;
 

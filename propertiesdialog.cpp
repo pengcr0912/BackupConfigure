@@ -12,7 +12,8 @@ PropertiesDialog::PropertiesDialog(BaseItem *baseItem, QWidget *parent) :
     heightSpinBox->setValue(int(baseItem->rect().height()));
     outlineColor = baseItem->pen().color();
     fillColor = baseItem->brush().color();
-
+    horizontalSlider->setRange(0,100);
+    horizontalSlider->setValue((baseItem->opacity())*100);
     updateColorLabel(outlineColLabel, outlineColor);
     updateColorLabel(fillColorLabel, fillColor);
 }
@@ -24,6 +25,7 @@ void PropertiesDialog::on_buttonBox_accepted()
 
     myItem->setPen(outlineColor);
     myItem->setBrush(fillColor);
+    myItem->setOpacity(horizontalSlider->value()/100.0);
     myItem->update();
     QDialog::accept();
 }

@@ -30,7 +30,7 @@ class DiagramScene : public QGraphicsScene
     Q_OBJECT
 
 public:
-    enum Mode { InsertCircleItem , InsertRectItem , InsertLineItem , InsertTextItem, InsertPixItem, MoveItem};
+    enum Mode { InsertCircleItem , InsertRectItem , InsertLineItem , InsertTextItem, InsertPixItem, InsertArrowItem, MoveItem};
     DiagramScene(QObject *parent = 0);
 
     QList<PixItem *> mypixlist;
@@ -46,6 +46,12 @@ public:
         { return myTextFont; }
     GroupItem *myCreatItemGroup(const QList<QGraphicsItem *> &items);
     void myDestroyItemGroup(GroupItem *group);
+
+public:
+    int arrowType;
+    double numDegrees;
+    void wheelEvent(QGraphicsSceneWheelEvent *event);
+
 public slots:
     void cut();
     void copy();
@@ -57,6 +63,7 @@ public slots:
     void editorLostFocus(TextItem *item);
 signals:
     void itemSelected(QGraphicsItem *item);
+    void wheelChanged(double num);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
@@ -76,7 +83,7 @@ private:
 
     PixItem *pixItem;
     QPixmap *pixmap;
-//    mySql *mysql;
+    ArrowItem *arrow;
 
     QPointF startPoint;
     Mode myMode;
@@ -86,6 +93,8 @@ private:
     QString code;
     QString name;
     QList<PixItem*> myPixList;
+
+    QPen myPen;
 //signals:
     //void itemMoved(DiagramItem *movedItem,const QPointF &movedFromPosition);
 
