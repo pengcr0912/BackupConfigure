@@ -48,7 +48,8 @@ HEADERS  += mainwindow.h \
     pixitem.h \
     mysql.h \
     queryresult.h \
-    arrowitem.h
+    arrowitem.h \
+    deviceparam.h
 
 OTHER_FILES += \
     MyConfigure.pro.user \

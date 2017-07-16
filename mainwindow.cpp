@@ -70,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     rowCnt=0;
 
+/*
     QHBoxLayout *layout = new QHBoxLayout;
 
     layout->addWidget(toolBox);
@@ -78,10 +79,16 @@ MainWindow::MainWindow(QWidget *parent)
     layout->setStretch(0,1);
     layout->setStretch(1,4);
 
-
     QWidget *widget = new QWidget;
     widget->setLayout(layout);
     setCentralWidget(widget);
+*/
+    QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
+    splitter->addWidget(toolBox);
+    splitter->addWidget(view);
+    splitter->setStretchFactor(0,2);
+    splitter->setStretchFactor(2,3);
+    setCentralWidget(splitter);
 
     setWindowTitle("可重构“射频-数据”一体化平台  集同管理软件");
 
@@ -327,11 +334,11 @@ void MainWindow::createToolbars()
     ItemToolBar = addToolBar(tr("shape"));
     ItemToolBar->addAction(addRectangleAction);
     ItemToolBar->addAction(addCircleAction);
-    ItemToolBar->addAction(addTriangleAction);
+    //ItemToolBar->addAction(addTriangleAction);
     ItemToolBar->addAction(addLineAction);
-    ItemToolBar->addAction(addTextAction);
     ItemToolBar->addAction(addArrowAction);
     ItemToolBar->addAction(addDoubleArrowAction);
+    ItemToolBar->addAction(addTextAction);
     ItemToolBar->addAction(addPixAction);
 
     ItemToolBar->setOrientation(Qt::Vertical);
@@ -640,6 +647,13 @@ void MainWindow::newFile()
         myDiagramScene->clear();
         setCurrentFile("");
     }
+}
+
+void MainWindow::sleep(unsigned int msec)
+{
+    QTime dieTime = QTime::currentTime().addMSecs(msec);
+    while( QTime::currentTime() < dieTime )
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }
 
 void MainWindow::open()
@@ -1709,9 +1723,9 @@ void MainWindow::genData()
             value = qSin((genDataCnt/200.0)*3.14159);
             strValue = QString::number(value);
             paramValueMap.insert(paramTempList.at(j), strValue);
+
+
         }
         currentTable->insertMulti(codeList.at(i),paramValueMap);
     }
-
-    //value = qCos((genDataCnt/200.0)*3.14159);
 }

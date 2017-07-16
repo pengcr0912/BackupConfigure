@@ -4,14 +4,10 @@
 #include <QGraphicsPixmapItem>
 #include <QPixmap>
 #include <QPainter>
+#include "deviceinfo.h"
+#include "deviceparam.h"
 
-struct DeviceParam
-{
-    QString paramName;
-    QString paramMin;
-    QString paramMax;
-    QString paramValue;
-};
+class DeviceInfo;
 
 class PixItem : public QGraphicsItem
 {
@@ -19,10 +15,12 @@ class PixItem : public QGraphicsItem
 public:
     enum { Type = QGraphicsItem::UserType + 7 };
     PixItem(QPixmap *pixmap, QGraphicsItem* parent = 0);
+    ~PixItem();
 
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     int type() const;
+    void statusCheck();
 
 //private:
     QPixmap pix;     		//作为图元显示的图片
@@ -30,7 +28,7 @@ public:
     QString deviceName;
     QList<DeviceParam> deviceParamList;
 
-
+    DeviceInfo* deviceWindow;
 /*
 protected:
     virtual void hoverMoveEvent(QGraphicsSceneHoverEvent * event);

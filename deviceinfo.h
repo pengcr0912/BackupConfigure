@@ -1,18 +1,20 @@
 #ifndef DEVICEINFO_H
 #define DEVICEINFO_H
 
-#include "ui_deviceinfo.h"
+//#include "ui_deviceinfo.h"
 #include <QMainWindow>
 #include "pixitem.h"
+#include "deviceparam.h"
+#include <QtWidgets>
 
 class BaseItem;
 class PixItem;
 class QColor;
-
+/*
 namespace Ui {
 class DeviceInfo;
 }
-
+*/
 class DeviceInfo : public QMainWindow
 {
     Q_OBJECT
@@ -24,9 +26,22 @@ public:
     int myRowCnt;
 
     QStringList* itemValueList;
+    QTimer *timer;
+    QPixmap *pixmap1;
+    QPixmap *pixmap2;
+
+    QTableWidget* tableWidget;
+    QComboBox* comboBox;
+    QTableWidgetItem* tableItem;
+    QListWidgetItem* listItem;
+    QToolBox* toolBox;
+    QPushButton* pushButton_save;
+    QPushButton* pushButton_add;
+    QLineEdit* lineEdit_code;
+    QLineEdit* lineEdit_name;
+    QListWidget* listWidget;
 
 public:
-    explicit DeviceInfo(BaseItem *baseItem, QWidget *parent = 0);
     explicit DeviceInfo(PixItem *pixItem, QWidget *parent = 0);
     ~DeviceInfo();
 
@@ -35,12 +50,10 @@ public slots:
     void setName(QString name);
     void setTable(QList<DeviceParam> paramList);
     void setDevice();
+    void modeChanged(QString mode);
 
 private:
-    Ui::DeviceInfo *ui;
-
-    QTableWidgetItem* tableItem;
-    QListWidgetItem* listItem;
+    //Ui::DeviceInfo *ui;
 
     BaseItem *myItem;
     PixItem *mypixItem;

@@ -1,5 +1,4 @@
 #include "deviceinfo.h"
-//#include "ui_deviceinfo.h"
 #include "customplotwindow.h"
 #include "baseitem.h"
 #include <QtSql/QSqlDatabase>
@@ -11,102 +10,56 @@
 extern QSqlDatabase db;
 extern QMap<QString, QMap<QString, QString>>* currentTable;
 
-DeviceInfo::DeviceInfo(BaseItem *baseItem, QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::DeviceInfo)
-{
-    ui->setupUi(this);
-
-    myItem = baseItem;
-    myRowCnt=0;
-
-    //    myItem->setPen(Qt::green);
-    //    myItem->setBrush(Qt::green);
-    myItem->setBrush(Qt::blue);
-    myItem->update();
-
-    Qt::WindowFlags flags = 0;
-    flags |= Qt::WindowMinimizeButtonHint;
-    setWindowFlags(flags); // 设置禁止最大化
-
-    ui->tableWidget->setColumnCount(4);
-    ui->tableWidget->setRowCount(30);
-    QStringList headers;
-    headers << "参数名称" << "允许最小值" << "允许最大值" << "当前值";
-    ui->tableWidget->setHorizontalHeaderLabels(headers);
-    ui->tableWidget->horizontalHeader()->setStretchLastSection(true);//自动填满控件
-
-    ui->tableWidget->setItem(0, 0, new QTableWidgetItem("CPU使用率"));
-    ui->tableWidget->setItem(0, 1, new QTableWidgetItem("0"));
-    ui->tableWidget->setItem(0, 2, new QTableWidgetItem("30%"));
-    ui->tableWidget->setItem(0, 3, new QTableWidgetItem("20%"));
-    ui->tableWidget->setItem(1, 0, new QTableWidgetItem("硬盘使用率"));
-    ui->tableWidget->setItem(1, 1, new QTableWidgetItem("0"));
-    ui->tableWidget->setItem(1, 2, new QTableWidgetItem("40%"));
-    ui->tableWidget->setItem(1, 3, new QTableWidgetItem("30%"));
-    ui->tableWidget->setItem(2, 0, new QTableWidgetItem("内存使用率"));
-    ui->tableWidget->setItem(2, 1, new QTableWidgetItem("0"));
-    ui->tableWidget->setItem(2, 2, new QTableWidgetItem("40%"));
-    ui->tableWidget->setItem(2, 3, new QTableWidgetItem("45%"));
-    ui->tableWidget->setItem(3, 0, new QTableWidgetItem("网络带宽"));
-    ui->tableWidget->setItem(3, 1, new QTableWidgetItem("0"));
-    ui->tableWidget->setItem(3, 2, new QTableWidgetItem("100Mbps"));
-    ui->tableWidget->setItem(3, 3, new QTableWidgetItem("50Mbps"));
-
-    ui->listWidget->setAlternatingRowColors(true);//背景颜色隔行区分
-
-    for(int i=0;i<10;i++)
-        ui->listWidget->addItem("2017-06-22 18:08:02:900 收到一条正常日志汇报");
-    ui->listWidget->addItem("2017-06-22 18:08:02:900 收到一条异常日志汇报");
-
-    listItem = ui->listWidget->item(10);
-    if (listItem)
-        listItem->setBackground(Qt::red);
-
-    for(int j=0;j<10;j++)
-        ui->listWidget->addItem("2017-06-22 18:08:02:900 收到一条正常日志汇报");
-
-    ui->listWidget->scrollToBottom();
-
-    //    ui->tableWidget->setStyleSheet("selection-background-color: red");//鼠标点击处显示红色
-    //    ui->tableWidget->setStyleSheet("QTableView::Item{background-color:#FF3EFF}");//行到背景色
-    //    ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
-
-    tableItem = ui->tableWidget->item(2,3);
-    if (tableItem)//对内容为空到item设置颜色会导致程序崩溃，因此需判断
-    {
-        const QColor color = QColor(255,0,0);
-        tableItem->setBackgroundColor(color);
-    }
-
-
-
-    for(int k=0;k<ui->tableWidget->rowCount();k++)
-        ui->tableWidget->setRowHeight(k,20);
-
-    ui->toolBox->setItemText(0,"日志显示");
-    ui->toolBox->setItemText(1,"参数配置");
-    ui->toolBox->setItemText(2,"控制指令");
-
-    connect(ui->tableWidget,SIGNAL(cellDoubleClicked(int,int)),this,SLOT(plotSlot(int,int)));
-    connect(ui->tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(statusConfirm(int,int)));
-}
-
+/*
 DeviceInfo::DeviceInfo(PixItem *pixItem, QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::DeviceInfo)
+    ui(new Ui::DeviceInfo)*/
+DeviceInfo::DeviceInfo(PixItem *pixItem, QWidget *parent) :
+    QMainWindow(parent)
 {
-    ui->setupUi(this);
+    //ui->setupUi(this);
 
     mypixItem = pixItem;
     myRowCnt=0;
+
+    tableWidget = new QTableWidget;
+    toolBox = new QToolBox;
+    pushButton_add = new QPushButton;
+    pushButton_save = new QPushButton;
+    lineEdit_code = new QLineEdit;
+    lineEdit_name = new QLineEdit;
+    listWidget = new QListWidget;
+    comboBox = new QComboBox;
+
+/*
+    QHBoxLayout *layout = new QHBoxLayout;
+    layout->addWidget(toolBox);
+    layout->addWidget(tableWidget);
+
+    layout->setStretch(0,1);
+    layout->setStretch(1,2);
+
+    QWidget *widget = new QWidget;
+    widget->setLayout(layout);
+    setCentralWidget(widget);*/
+
+    QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
+    splitter->addWidget(toolBox);
+    splitter->addWidget(tableWidget);
+    splitter->setStretchFactor(0,1);
+    splitter->setStretchFactor(1,2);
+    setCentralWidget(splitter);
+
+    resize(650, 300);
 
     //    myItem->setPen(Qt::green);
     //    myItem->setBrush(Qt::green);
     //    mypixItem->setBrush(Qt::blue);
     mypixItem->update();
+    pixmap1 = new  QPixmap("/users/hyn/images/deviceItem.jpg");
+    pixmap2 = new  QPixmap("/users/hyn/images/deviceItem2.jpg");
 
-    QTimer *timer = new QTimer(this);
+    timer = new QTimer(this);
     connect(timer,SIGNAL(timeout()),this,SLOT(updateData()));
     timer->start(1000);
 
@@ -116,48 +69,84 @@ DeviceInfo::DeviceInfo(PixItem *pixItem, QWidget *parent) :
     flags |= Qt::WindowMinimizeButtonHint;
     setWindowFlags(flags); // 设置禁止最大化
 
-    ui->tableWidget->setColumnCount(4);
-    ui->tableWidget->setRowCount(myRowCnt);
+    tableWidget->setColumnCount(4);
+    tableWidget->setRowCount(myRowCnt);
     QStringList headers;
     headers << "参数名称" << "允许最小值" << "允许最大值" << "当前值";
-    ui->tableWidget->setHorizontalHeaderLabels(headers);
-    ui->tableWidget->horizontalHeader()->setStretchLastSection(true);//自动填满控件
+    tableWidget->setHorizontalHeaderLabels(headers);
+    tableWidget->horizontalHeader()->setStretchLastSection(true);//自动填满控件
 
-    ui->listWidget->setAlternatingRowColors(true);//背景颜色隔行区分
+    //    tableWidget->setStyleSheet("selection-background-color: red");//鼠标点击处显示红色
+    //    tableWidget->setStyleSheet("QTableView::Item{background-color:#FF3EFF}");//行到背景色
+    //    tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
+
+    for(int k=0;k<tableWidget->rowCount();k++)
+        tableWidget->setRowHeight(k,20);
+
+    QWidget *logWidget = new QWidget;
+    QVBoxLayout* logLayout = new QVBoxLayout;
+    logLayout->addWidget(listWidget);
+    logWidget->setLayout(logLayout);
+
+    listWidget->setAlternatingRowColors(true);//背景颜色隔行区分
     for(int i=0;i<10;i++)
-        ui->listWidget->addItem("2017-06-22 18:08:02:900 收到一条正常日志汇报");
-    ui->listWidget->addItem("2017-06-22 18:08:02:900 收到一条异常日志汇报");
-    listItem = ui->listWidget->item(10);
+        listWidget->addItem("2017-06-22 18:08:02:900 收到一条正常日志汇报");
+    listWidget->addItem("2017-06-22 18:08:02:900 收到一条异常日志汇报");
+    listItem = listWidget->item(10);
     if (listItem)
         listItem->setBackground(Qt::red);
     for(int j=0;j<10;j++)
-        ui->listWidget->addItem("2017-06-22 18:08:02:900 收到一条正常日志汇报");
-    ui->listWidget->scrollToBottom();
+        listWidget->addItem("2017-06-22 18:08:02:900 收到一条正常日志汇报");
+    listWidget->scrollToBottom();
 
-    //    ui->tableWidget->setStyleSheet("selection-background-color: red");//鼠标点击处显示红色
-    //    ui->tableWidget->setStyleSheet("QTableView::Item{background-color:#FF3EFF}");//行到背景色
-    //    ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
 
-    for(int k=0;k<ui->tableWidget->rowCount();k++)
-        ui->tableWidget->setRowHeight(k,20);
+    QWidget *paramWidget = new QWidget;
+    QVBoxLayout* layoutV = new QVBoxLayout;
+    QLabel* label_code = new QLabel("设备代码");
+    QLabel* label_name = new QLabel("设备名称");
+    QGridLayout* paramLayout = new QGridLayout;
+    paramLayout->addWidget(label_code, 0, 0);
+    paramLayout->addWidget(label_name, 1, 0);
+    paramLayout->addWidget(lineEdit_code, 0, 1);
+    paramLayout->addWidget(lineEdit_name, 1, 1);
+    layoutV->addWidget(comboBox);
+    layoutV->addLayout(paramLayout);
+    layoutV->addWidget(pushButton_add);
+    layoutV->addWidget(pushButton_save);
+    paramWidget->setLayout(layoutV);
 
-    ui->toolBox->setItemText(0,"日志显示");
-    ui->toolBox->setItemText(1,"参数配置");
-    ui->toolBox->setItemText(2,"控制指令");
+    QWidget *commandWidget = new QWidget;
 
-    connect(ui->tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(plotSlot(int,int)));
-    //    connect(ui->tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(statusConfirm(int,int)));
+    toolBox->addItem(logWidget,"日志显示");
+    toolBox->addItem(paramWidget,"参数配置");
+    toolBox->addItem(commandWidget,"指令控制");
 
-    connect(ui->pushButton_save,SIGNAL(clicked()),this,SLOT(save()));
-    connect(ui->pushButton_add,SIGNAL(clicked()),this,SLOT(addParam()));
+    pushButton_add->setText("添加参数");
+    pushButton_save->setText("保存设置");
 
-    connect(ui->tableWidget->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(onHeaderClicked(int)));
+    //toolBox->setItemText(0,"日志显示");
+    //toolBox->setItemText(1,"参数配置");
+    //toolBox->setItemText(2,"控制指令");
+
+    comboBox->addItem("监视模式");
+    comboBox->addItem("配置模式");
+    comboBox->setCurrentIndex(0);
+    pushButton_add->setEnabled(false);
+    pushButton_save->setEnabled(false);
+
+    connect(tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(plotSlot(int,int)));
+    //    connect(tableWidget,SIGNAL(cellClicked(int,int)),this,SLOT(statusConfirm(int,int)));
+    connect(pushButton_save,SIGNAL(clicked()),this,SLOT(save()));
+    connect(pushButton_add,SIGNAL(clicked()),this,SLOT(addParam()));
+    connect(tableWidget->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(onHeaderClicked(int)));
+    connect(comboBox, SIGNAL(currentIndexChanged(const QString &)),
+            this, SLOT(modeChanged(const QString &)));
 }
 
 
 DeviceInfo::~DeviceInfo()
 {
-    delete ui;
+    //delete ui;
 }
 
 void DeviceInfo::plotSlot(int i, int j)
@@ -169,7 +158,7 @@ void DeviceInfo::plotSlot(int i, int j)
         flags |= Qt::WindowMinimizeButtonHint;
         cp->setWindowFlags(flags); // 设置禁止最大化
         QString str="";
-        tableItem = ui->tableWidget->item(i,0);
+        tableItem = tableWidget->item(i,0);
         if(tableItem)
             str = tableItem->text();
         cp->drawRealtimeCurve(str, i, itemValueList);
@@ -179,7 +168,7 @@ void DeviceInfo::plotSlot(int i, int j)
 
 void DeviceInfo::statusConfirm(int i, int j)
 {
-    tableItem = ui->tableWidget->item(i,j);
+    tableItem = tableWidget->item(i,j);
     if (tableItem)//对内容为空到item设置颜色会导致程序崩溃，因此需判断
     {
         const QColor color = QColor(255,255,255);
@@ -189,25 +178,25 @@ void DeviceInfo::statusConfirm(int i, int j)
 
 void DeviceInfo::setCode(QString code)
 {
-    ui->lineEdit_code->setText(code);
+    lineEdit_code->setText(code);
 }
 
 void DeviceInfo::setName(QString name)
 {
-    ui->lineEdit_name->setText(name);
+    lineEdit_name->setText(name);
 }
 
 void DeviceInfo::setTable(QList<DeviceParam> paramList)
 {
     myRowCnt = paramList.count();
-    ui->tableWidget->setRowCount(myRowCnt);
+    tableWidget->setRowCount(myRowCnt);
     for(int i=0; i<myRowCnt; i++)
     {
-        ui->tableWidget->setRowHeight(i, 20);
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(paramList.at(i).paramName));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(paramList.at(i).paramMin));
-        ui->tableWidget->setItem(i, 2, new QTableWidgetItem(paramList.at(i).paramMax));
-        //        ui->tableWidget->setItem(i, 3, new QTableWidgetItem(paramList.at(i).paramValue));
+        tableWidget->setRowHeight(i, 20);
+        tableWidget->setItem(i, 0, new QTableWidgetItem(paramList.at(i).paramName));
+        tableWidget->setItem(i, 1, new QTableWidgetItem(paramList.at(i).paramMin));
+        tableWidget->setItem(i, 2, new QTableWidgetItem(paramList.at(i).paramMax));
+        //        tableWidget->setItem(i, 3, new QTableWidgetItem(paramList.at(i).paramValue));
     }
 }
 
@@ -215,17 +204,17 @@ void DeviceInfo::setTable(QList<DeviceParam> paramList)
 void DeviceInfo::addParam()
 {
     myRowCnt++;
-    ui->tableWidget->setRowCount(myRowCnt);
-    ui->tableWidget->setRowHeight(myRowCnt-1, 20);
-    //    ui->tableWidget->setEditTriggers ( QAbstractItemView::NoEditTriggers );//整个table不可编辑
+    tableWidget->setRowCount(myRowCnt);
+    tableWidget->setRowHeight(myRowCnt-1, 20);
+    //    tableWidget->setEditTriggers ( QAbstractItemView::NoEditTriggers );//整个table不可编辑
 
-    tableItem = ui->tableWidget->item(myRowCnt-1,3);
+    tableItem = tableWidget->item(myRowCnt-1,3);
     if(tableItem)
         tableItem->setFlags(tableItem->flags() & ~Qt::ItemIsEditable);
     //    mypixItem->deviceParamList.append(myParam);
     //    myParamList.append(myParam);
     //    setTable(myParamList);
-    //    ui->tableWidget->setItem(0, 0, new QTableWidgetItem(ui->lineEdit_3->text()));
+    //    tableWidget->setItem(0, 0, new QTableWidgetItem(lineEdit_3->text()));
 }
 
 void DeviceInfo::setDevice()
@@ -248,15 +237,15 @@ void DeviceInfo::setDevice()
 
             while(query.next())//QSqlQuery返回的数据集，record是停在第一条记录之前的。所以，在获得数据集后，必须执行next()或first()到第一条记录，这时候record才是有效的
             {
-                ui->tableWidget->setRowCount(myRowCnt+1);
+                tableWidget->setRowCount(myRowCnt+1);
                 setName(query.value(0).toString());
                 setCode(query.value(1).toString());
-                ui->tableWidget->setItem(myRowCnt, 0, new QTableWidgetItem(query.value(2).toString()));
-                ui->tableWidget->setItem(myRowCnt, 1, new QTableWidgetItem(query.value(3).toString()));
-                ui->tableWidget->setItem(myRowCnt, 2, new QTableWidgetItem(query.value(4).toString()));
+                tableWidget->setItem(myRowCnt, 0, new QTableWidgetItem(query.value(2).toString()));
+                tableWidget->setItem(myRowCnt, 1, new QTableWidgetItem(query.value(3).toString()));
+                tableWidget->setItem(myRowCnt, 2, new QTableWidgetItem(query.value(4).toString()));
                 myRowCnt++;
             }
-            setWindowTitle(ui->lineEdit_code->text());
+            setWindowTitle(lineEdit_code->text());
         }
         else
             qDebug() << "jtgl表不存在";
@@ -268,17 +257,17 @@ void DeviceInfo::setDevice()
 
 void DeviceInfo::onHeaderClicked(int i)
 {
-    ui->tableWidget->removeRow(i);
+    tableWidget->removeRow(i);
     myRowCnt--;
 }
 
 void DeviceInfo::save()
 {
     int i,j;
-    mypixItem->deviceCode = ui->lineEdit_code->text();
-    mypixItem->deviceName = ui->lineEdit_name->text();
+    mypixItem->deviceCode = lineEdit_code->text();
+    mypixItem->deviceName = lineEdit_name->text();
     mypixItem->deviceParamList.clear();
-    int rowCnt = ui->tableWidget->rowCount();
+    int rowCnt = tableWidget->rowCount();
 
     if(mypixItem->deviceCode.count() == 0)
     {
@@ -290,7 +279,7 @@ void DeviceInfo::save()
     {
         for(j=0;j<3;j++)
         {
-            tableItem = ui->tableWidget->item(i,j);
+            tableItem = tableWidget->item(i,j);
             if (!tableItem)
             {
                 QMessageBox::about(NULL, "warning", "参数及上下限不能为空");
@@ -301,9 +290,9 @@ void DeviceInfo::save()
 
     for(i=0;i<rowCnt;i++)
     {
-        myParam.paramName = ui->tableWidget->item(i,0)->text();
-        myParam.paramMin = ui->tableWidget->item(i,1)->text();
-        myParam.paramMax = ui->tableWidget->item(i,2)->text();
+        myParam.paramName = tableWidget->item(i,0)->text();
+        myParam.paramMin = tableWidget->item(i,1)->text();
+        myParam.paramMax = tableWidget->item(i,2)->text();
         mypixItem->deviceParamList.append(myParam);
     }
 
@@ -326,9 +315,9 @@ void DeviceInfo::save()
                 insertline = QString("insert into DeviceParam values('%1','%2','%3','%4','%5')")
                         .arg(mypixItem->deviceName)
                         .arg(mypixItem->deviceCode)
-                        .arg(ui->tableWidget->item(i,0)->text())
-                        .arg(ui->tableWidget->item(i,1)->text())
-                        .arg(ui->tableWidget->item(i,2)->text());
+                        .arg(tableWidget->item(i,0)->text())
+                        .arg(tableWidget->item(i,1)->text())
+                        .arg(tableWidget->item(i,2)->text());
                 query.exec(insertline);
             }
         }
@@ -344,7 +333,7 @@ void DeviceInfo::save()
         {
             insertline = QString("alter table %1 add column %2 VARCHAR(100)")
                     .arg(mypixItem->deviceCode)
-                    .arg(ui->tableWidget->item(i,0)->text());//参数名称中不能有()等字符！！
+                    .arg(tableWidget->item(i,0)->text());//参数名称中不能有()等字符！！
             query.exec(insertline);
         }
     }
@@ -361,24 +350,54 @@ void DeviceInfo::updateData()
     double max;
     QMap<QString, QString> paramValueMap;
     QString paramName;
-    paramValueMap = currentTable->value(ui->lineEdit_code->text());
+    paramValueMap = currentTable->value(lineEdit_code->text());
     QTableWidgetItem* nameItem = new QTableWidgetItem;
+    QTableWidgetItem* minItem = new QTableWidgetItem;
+    QTableWidgetItem* maxItem = new QTableWidgetItem;
     QString str;
     for(int i=0;i<myRowCnt;i++)
     {
-        min = ui->tableWidget->item(i,1)->text().toDouble();
-        max = ui->tableWidget->item(i,2)->text().toDouble();
-        nameItem = ui->tableWidget->item(i,0);
-        if(nameItem)
+        nameItem = tableWidget->item(i,0);
+        minItem = tableWidget->item(i,1);
+        maxItem = tableWidget->item(i,2);
+        if(nameItem && minItem && maxItem)
         {
             paramName = nameItem->text();
+            min = minItem->text().toDouble();
+            max = maxItem->text().toDouble();
             str = paramValueMap.value(paramName);
-            ui->tableWidget->setItem(i, 3, new QTableWidgetItem(str));
+            tableWidget->setItem(i, 3, new QTableWidgetItem(str));
             itemValueList->append(str);
             if(str.toDouble() > max || str.toDouble() < min)
-                ui->tableWidget->item(i,3)->setBackgroundColor(color1);
+            {
+                tableWidget->item(i,3)->setBackgroundColor(color1);
+                mypixItem->pix = *pixmap2;
+                mypixItem->update();
+                //mypixItem->setOpacity(0.1);
+            }
             else
-                ui->tableWidget->item(i,3)->setBackgroundColor(color2);
+            {
+                tableWidget->item(i,3)->setBackgroundColor(color2);
+                mypixItem->pix = *pixmap1;
+                mypixItem->update();
+                //mypixItem->setOpacity(1);
+            }
         }
+    }
+}
+
+void DeviceInfo::modeChanged(QString mode)
+{
+    if(mode == "监视模式")
+    {
+        timer->start(1000);
+        pushButton_add->setEnabled(false);
+        pushButton_save->setEnabled(false);
+    }
+    else
+    {
+        timer->stop();
+        pushButton_add->setEnabled(true);
+        pushButton_save->setEnabled(true);
     }
 }

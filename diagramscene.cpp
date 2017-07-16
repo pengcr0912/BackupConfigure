@@ -19,6 +19,8 @@ DiagramScene::DiagramScene(QObject *parent)
     myLineWidth = 2;
     numDegrees=1;
     arrowType=1;
+
+    pixmap = new  QPixmap("/users/hyn/images/deviceItem.jpg");
 }
 void DiagramScene::setMode(Mode mode )//区分单次点击生成还是按起始和终点生成
 {
@@ -107,7 +109,7 @@ void DiagramScene::setTextColor(const QColor &color)
 }
 bool DiagramScene::writeFile(QFile &file)
 {
-
+    //QPixmap pixmapSaved("/users/hyn/images/deviceItem.jpg");
     QDataStream out(&file);
     out.setVersion(QDataStream::Qt_4_3);
     //    out << quint32(MagicNumber);
@@ -141,7 +143,8 @@ bool DiagramScene::writeFile(QFile &file)
         {
             out << pixItem->type()
                 << pixItem->pos()
-                << pixItem->pix
+                //<< pixItem->pix//pix此时可能为报错状态，保存后不是初始状态，且此时pix可能正在重绘，不能操作
+                //<< pixmapSaved
                 << pixItem->deviceCode;
 //                << pixItem->deviceName
 //                << pixItem->deviceParamList;
@@ -188,7 +191,7 @@ bool DiagramScene::readFile(QFile &file)
         QFont myFont;
         QString myString;
 
-        QPixmap myPixmap;
+        //QPixmap myPixmap;
         //QList<DeviceParam> myDeviceParamList;
 
         in >> itemType;
@@ -266,19 +269,21 @@ bool DiagramScene::readFile(QFile &file)
         else if(itemType == QGraphicsItem::UserType + 7)//
         {
 //            in >> mypos >> myPixmap >> code >> name >> myDeviceParamList;
-            in >> mypos >> myPixmap >> code;
+//            in >> mypos >> myPixmap >> code;
+            in >> mypos >> code;
 
             if(in.status() != QDataStream::Ok)
             {
                 return false;
             }
-            PixItem *pixItem = new PixItem(&myPixmap);
+            //PixItem *pixItem = new PixItem(&myPixmap);
+            PixItem *pixItem = new PixItem(pixmap);
             pixItem->setPos(mypos);
-//            pixItem->setPixmap(myPixmap);
             pixItem->deviceCode = code;
 //            pixItem->deviceName = name;
 //            pixItem->deviceParamList = myDeviceParamList;
             addItem(pixItem);
+            pixItem->statusCheck();
         }
         else if(itemType == QGraphicsItem::UserType + 8)
         {
@@ -404,13 +409,12 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     }
     case InsertPixItem:
     {
-         pixmap = new  QPixmap("/users/hyn/images/deviceItem.jpg");
          pixItem = new PixItem(pixmap);
          if(pixItem)
          {
              addItem(pixItem);
              pixItem->setPos(mouseEvent->scenePos());
-             pixItem->setOpacity(0.1);
+             pixItem->setOpacity(0.2);
          }
          //        emit textInserted(textItem);//主要是想改变场景的模式
          setMode(MoveItem);

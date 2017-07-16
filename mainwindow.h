@@ -129,6 +129,8 @@ private:
     void createToolbars();
     void createToolBox();
 
+    void sleep(unsigned int msec);
+
     void writeLog(int iType, QString strLog);
 
     QMenu *createColorMenu(const char *slot, QColor defaultColor);
